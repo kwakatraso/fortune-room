@@ -1,17 +1,17 @@
-export default function RatingStars({ rating, onChange }) {
+import React from "react";
+
+export const RatingStars = ({ value = 0, onChange = () => {} }) => {
   return (
     <div className="flex space-x-1">
       {[1, 2, 3, 4, 5].map((star) => (
-        <span
+        <button
           key={star}
-          className={`cursor-pointer text-2xl ${
-            star <= rating ? "text-yellow-400" : "text-gray-400"
-          }`}
           onClick={() => onChange(star)}
+          className={`text-2xl ${star <= value ? "text-yellow-400" : "text-gray-300"}`}
         >
           ★
-        </span>
+        </button>
       ))}
     </div>
   );
-}
+};
