@@ -6,6 +6,7 @@ import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { useEffect } from "react";
+import { RatingStars } from "../components/RatingStars";
 
 const advisors = [
   { id: 1, name: "사라", desc: "연애 전문 타로마스터" },
@@ -24,6 +25,7 @@ export default function Home() {
   const [reservationDate, setReservationDate] = useState("");
   const [reserved, setReserved] = useState(false);
   const [fortune, setFortune] = useState("");
+  const [rating, setRating] = useState(0); // 별점
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -54,6 +56,7 @@ export default function Home() {
     const reviewData = {
       name: name || "익명",
       content: review,
+      rating,
       date: new Date().toISOString(),
       advisor: advisor?.name || "선택 안 됨",
       question,
@@ -154,9 +157,19 @@ export default function Home() {
               value={review}
               onChange={(e) => setReview(e.target.value)}
             />
+
+            <p className="mt-2 text-sm">별점을 선택해주세요:</p>
+            <RatingStars value={rating} onChange={setRating} />
+
             <Button
               className="mt-2"
-              onClick={handleReviewSubmit}
+              onClick={() => {
+                if (review && rating > 0) {
+                  handleReviewSubmit();
+                } else {
+                  alert("후기와 별점을 모두 입력해주세요!");
+                }
+              }}
             >
               후기 작성하기
             </Button>
@@ -164,9 +177,15 @@ export default function Home() {
             <div className="mt-4">
               <h3 className="text-lg font-semibold mb-1">📣 후기</h3>
               {reviews.map((r, i) => (
-                <p key={i} className="border-t pt-2 text-sm text-gray-700">
-                  {typeof r === "string" ? r : r.review}
-                </p>
+                <div key={i} className="border-t pt-2 text-sm text-gray-700">
+                  <p>
+                    ⭐{" "}
+                    {typeof r === "string"
+                      ? "(별점 없음)"
+                      : "★".repeat(r.rating || 0)}
+                  </p>
+                  <p>{typeof r === "string" ? r : r.content}</p>
+                </div>
               ))}
             </div>
           </Card>
