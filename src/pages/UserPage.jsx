@@ -26,6 +26,7 @@ export default function Home() {
   const [reserved, setReserved] = useState(false);
   const [fortune, setFortune] = useState("");
   const [rating, setRating] = useState(0); // 별점
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -78,6 +79,17 @@ export default function Home() {
   const result = "🌟 당신에게 곧 좋은 일이 찾아올 것입니다!";
   setFortune(result);
 }
+  const filteredReviews = reviews.filter((r) => {
+    // 예전 데이터 호환 처리
+    const name = typeof r === "object" ? (r.name || "") : "";
+    const content = typeof r === "object" ? (r.content || "") : r;
+    const rating = typeof r === "object" && r.rating ? String(r.rating) : "";
+    return (
+      name.includes(search) ||
+      content.includes(search) ||
+      rating.includes(search)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 font-serif p-4">
@@ -196,7 +208,15 @@ export default function Home() {
         {reviews.length > 0 && (
           <Card>
             <h2 className="text-lg font-semibold">💬 사용자 후기</h2>
-            {reviews.map((r, index) => (
+            <Input
+              type="text"
+              className="mb-2"
+              placeholder="후기 검색 (상담사/내용/별점)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+
+            {filteredReviews.map((r, index) => (
               <div key={index} className="border-b py-2">
                 <p className="font-bold">{typeof r === "object" ? r.name : "익명"}</p>
                 {typeof r === "object" && r.rating && (
