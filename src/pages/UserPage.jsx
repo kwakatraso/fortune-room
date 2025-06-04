@@ -9,8 +9,20 @@ import { useEffect } from "react";
 import { RatingStars } from "../components/RatingStars";
 
 const advisors = [
-  { id: 1, name: "사라", desc: "연애 전문 타로마스터" },
-  { id: 2, name: "도윤", desc: "현실 조언 전문가" },
+  {
+    id: 1,
+    name: "사라",
+    desc: "연애 전문 타로마스터",
+    image: "/advisors/sara.jpg",
+    intro: "20년 경력의 연애·인생 전문 타로마스터. 다정한 상담으로 유명.",
+  },
+  {
+    id: 2,
+    name: "도윤",
+    desc: "현실 조언 전문가",
+    image: "/advisors/doyoon.jpg",
+    intro: "이성적이고 현실적인 조언을 주는 상담사. 고민 해결에 탁월.",
+  },
 ];
 
 export default function Home() {
@@ -100,12 +112,23 @@ export default function Home() {
 
         {step === 0 && (
           <Card>
-            <p className="text-lg font-semibold">상담사를 선택하세요</p>
-            <div className="space-y-2 mt-2">
+            <p className="text-lg font-semibold mb-2">상담사를 선택하세요</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {advisors.map((a) => (
-                <Button key={a.id} onClick={() => { setAdvisor(a); setStep(1); }}>
-                  {a.name} – {a.desc}
-                </Button>
+                <button
+                  key={a.id}
+                  onClick={() => { setAdvisor(a); setStep(1); }}
+                  className="flex flex-col items-center border rounded-2xl p-4 bg-white hover:shadow-lg transition"
+                >
+                  <img
+                    src={a.image}
+                    alt={a.name}
+                    className="w-24 h-24 object-cover rounded-full mb-2"
+                  />
+                  <p className="font-bold">{a.name}</p>
+                  <p className="text-sm text-gray-600 mb-2">{a.desc}</p>
+                  <p className="text-xs text-gray-500">{a.intro}</p>
+                </button>
               ))}
             </div>
           </Card>
@@ -160,6 +183,21 @@ export default function Home() {
         {step === 3 && (
           <Card>
             <h2 className="text-xl font-bold mb-2">🔮 운세 해석 결과</h2>
+            
+            {advisor && (
+              <div className="flex items-center gap-3 mb-4">
+                <img
+                  src={advisor.image}
+                  alt={advisor.name}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                <div>
+                  <p className="font-bold">{advisor.name}</p>
+                  <p className="text-xs text-gray-600">{advisor.desc}</p>
+                </div>
+              </div>
+            )}
+
             <p className="mb-2">{fortune}</p>
             <p className="text-sm text-gray-600 mb-4">
               예약일: {reservationDate} / 상담사: {advisor?.name}
