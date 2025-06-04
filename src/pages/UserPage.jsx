@@ -39,15 +39,36 @@ export default function Home() {
   const [fortune, setFortune] = useState("");
   const [rating, setRating] = useState(0); // 별점
   const [search, setSearch] = useState("");
+  const [typingIndex, setTypingIndex] = useState(0); // 타이핑 애니메이션용
+  const [averageRating, setAverageRating] = useState(0);
 
   useEffect(() => {
     const fetchReviews = async () => {
       const snapshot = await getDocs(collection(db, "reviews"));
       const list = snapshot.docs.map((doc) => doc.data());
       setReviews(list);
+
+      // ⭐ 평균 별점 계산
+      const ratings = list
+        .filter((r) => typeof r === "object" && r.rating)
+        .map((r) => r.rating);
+      const avg =
+        ratings.length > 0
+          ? (ratings.reduce((acc, cur) => acc + cur, 0) / ratings.length).toFixed(1)
+          : 0;
+      setAverageRating(avg);
     };
     fetchReviews();
   }, []);
+
+  useEffect(() => {
+    if (typingIndex < fortune.length) {
+      const timeout = setTimeout(() => {
+        setTypingIndex((prev) => prev + 1);
+      }, 50);
+      return () => clearTimeout(timeout);
+    }
+  }, [typingIndex, fortune]);
 
   const handleSubmit = () => {
     const randomThemes = ["사랑", "재물", "성장", "위험", "새로운 시작"];
@@ -90,6 +111,8 @@ export default function Home() {
   // 결제 시뮬 + 운세 결과 생성
   const result = "🌟 당신에게 곧 좋은 일이 찾아올 것입니다!";
   setFortune(result);
+  setTypingIndex(0); // 타이핑 효과 초기화
+  setStep(3); // 운세 결과 페이지로 이동
 }
   const filteredReviews = reviews.filter((r) => {
     // 예전 데이터 호환 처리
@@ -103,12 +126,23 @@ export default function Home() {
     );
   });
 
+  const handleCopyResult = () => {
+    const fullText = `✨ 운세 결과 ✨\n${fortune}`;
+    navigator.clipboard.writeText(fullText).then(() => {
+      alert("결과가 클립보드에 복사되었어요!");
+    });
+  };
+
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 font-serif p-4 md:p-6">
       <div className="max-w-md md:max-w-xl mx-auto space-y-4">
         <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
           운세룸 - 내 마음의 이야기
         </h1>
+        <p className="text-center text-yellow-500 text-sm">
+          ⭐ 평균 별점: {averageRating} / 5
+        </p>
 
         {step === 0 && (
           <Card>
@@ -198,7 +232,18 @@ export default function Home() {
               </div>
             )}
 
-            <p className="mb-2">{fortune}</p>
+            <p className="mb-2 whitespace-pre-line">
+              {fortune.slice(0, typingIndex)}
+              {typingIndex < fortune.length && <span className="animate-pulse">|</span>}
+            </p>
+
+            <Button
+              className="mb-2 w-full md:w-auto"
+              onClick={handleCopyResult}
+            >
+              결과 공유하기
+            </Button>
+
             <p className="text-sm text-gray-600 mb-4">
               예약일: {reservationDate} / 상담사: {advisor?.name}
             </p>
