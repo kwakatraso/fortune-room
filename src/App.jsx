@@ -1,6 +1,9 @@
 import { useState } from "react";
 import UserPage from "./pages/UserPage";
 import AdvisorPage from "./pages/AdvisorPage";
+import AdminPage from "./pages/AdminPage";
+
+<Route path="/admin" element={<AdminPage />} />
 
 function App() {
   const [role, setRole] = useState(null);
