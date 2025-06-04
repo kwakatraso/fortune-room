@@ -1,4 +1,3 @@
-// App.jsx
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +6,7 @@ import {
 import UserPage from "./pages/UserPage";
 import AdvisorPage from "./pages/AdvisorPage";
 import AdminPage from "./pages/AdminPage";
+import React, { useState } from "react";
 
 function App() {
   return (
