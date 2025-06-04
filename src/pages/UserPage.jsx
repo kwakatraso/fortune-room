@@ -92,9 +92,9 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 font-serif p-4">
-      <div className="max-w-xl mx-auto space-y-4">
-        <h1 className="text-3xl font-bold text-center text-purple-800">
+    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 font-serif p-4 md:p-6">
+      <div className="max-w-md md:max-w-xl mx-auto space-y-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
           운세룸 - 내 마음의 이야기
         </h1>
 
@@ -115,12 +115,13 @@ export default function Home() {
         <Card>
             <p className="text-lg">상담 받을 날짜를 선택해주세요</p>
             <Input
+            className="w-full md:w-auto"
             type="date"
             value={reservationDate}
             onChange={(e) => setReservationDate(e.target.value)}
             />
             <Button
-            className="mt-2"
+            className="mt-2 w-full md:w-auto"
             onClick={() => {
                 if (reservationDate) {
                 setReserved(true);
@@ -143,7 +144,7 @@ export default function Home() {
               onChange={(e) => setQuestion(e.target.value)}
             />
             <Button
-              className="mt-4"
+              className="mt-2 w-full md:w-auto"
               onClick={() => {
                 if (question) {
                   handlePayment();
@@ -167,6 +168,7 @@ export default function Home() {
             <RatingStars rating={rating} onChange={setRating} />
 
             <Textarea
+              className="w-full md:w-auto"
               placeholder="후기를 남겨주세요"
               value={review}
               onChange={(e) => setReview(e.target.value)}
@@ -176,7 +178,7 @@ export default function Home() {
             <RatingStars value={rating} onChange={setRating} />
 
             <Button
-              className="mt-2"
+              className="mt-2 w-full md:w-auto"
               onClick={() => {
                 if (review && rating > 0) {
                   handleReviewSubmit();
@@ -210,7 +212,7 @@ export default function Home() {
             <h2 className="text-lg font-semibold">💬 사용자 후기</h2>
             <Input
               type="text"
-              className="mb-2"
+              className="w-full md:w-auto"
               placeholder="후기 검색 (상담사/내용/별점)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
