@@ -1,21 +1,16 @@
-import { useState } from "react";
-
-export function RatingStars({ value, onChange }) {
-  const [hover, setHover] = useState(0);
-
+export default function RatingStars({ rating, onChange }) {
   return (
     <div className="flex space-x-1">
       {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          type="button"
+        <span
           key={star}
-          className={`text-2xl ${star <= (hover || value) ? "text-yellow-400" : "text-gray-300"}`}
+          className={`cursor-pointer text-2xl ${
+            star <= rating ? "text-yellow-400" : "text-gray-400"
+          }`}
           onClick={() => onChange(star)}
-          onMouseEnter={() => setHover(star)}
-          onMouseLeave={() => setHover(0)}
         >
           ★
-        </button>
+        </span>
       ))}
     </div>
   );

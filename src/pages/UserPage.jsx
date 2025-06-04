@@ -152,6 +152,8 @@ export default function Home() {
               예약일: {reservationDate} / 상담사: {advisor?.name}
             </p>
 
+            <RatingStars rating={rating} onChange={setRating} />
+
             <Textarea
               placeholder="후기를 남겨주세요"
               value={review}
@@ -197,6 +199,9 @@ export default function Home() {
             {reviews.map((r, index) => (
               <div key={index} className="border-b py-2">
                 <p className="font-bold">{typeof r === "object" ? r.name : "익명"}</p>
+                {typeof r === "object" && r.rating && (
+                  <p className="text-yellow-500">{"★".repeat(r.rating)}</p>
+                )}
                 <p>{typeof r === "object" ? r.content : r}</p>
               </div>
             ))}
