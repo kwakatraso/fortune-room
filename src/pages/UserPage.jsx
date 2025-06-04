@@ -13,14 +13,14 @@ const advisors = [
     id: 1,
     name: "사라",
     desc: "연애 전문 타로마스터",
-    image: "/advisors/sara.jpg",
+    image: "/advisors/sara.png",
     intro: "20년 경력의 연애·인생 전문 타로마스터. 다정한 상담으로 유명.",
   },
   {
     id: 2,
     name: "도윤",
     desc: "현실 조언 전문가",
-    image: "/advisors/doyoon.jpg",
+    image: "/advisors/doyoon.png",
     intro: "이성적이고 현실적인 조언을 주는 상담사. 고민 해결에 탁월.",
   },
 ];
