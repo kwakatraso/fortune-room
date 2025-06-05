@@ -86,7 +86,10 @@ export default function Home() {
   };
 
   const handleReviewSubmit = async () => {
-    if (!review) return;
+    if (!review || rating === 0) {
+      alert("후기와 별점을 모두 입력해주세요!");
+      return;
+    }
 
     const reviewData = {
       name: name || "익명",
@@ -100,11 +103,21 @@ export default function Home() {
 
     try {
       await addDoc(collection(db, "reviews"), reviewData);
-      setReviews([...reviews, reviewData]); // 로컬에도 추가
+      setReviews([...reviews, reviewData]); // 로컬에 추가
       setReview("");
-      setStep(0); // 다시 첫 화면으로
+      setRating(0);
+      setName("");
+      setReservationDate("");
+      setAdvisor(null);
+      setQuestion("");
+      setFortune("");
+      setTypingIndex(0);
+      setPaymentDone(false);
+      alert("✅ 후기 작성이 완료되었어요!");
+      setStep(0); // 첫 화면으로 이동
     } catch (e) {
       console.error("후기 저장 실패:", e);
+      alert("❌ 저장 중 오류가 발생했어요.");
     }
   };
 
@@ -138,7 +151,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 font-serif p-4 md:p-6">
       <div className="max-w-md md:max-w-xl mx-auto space-y-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-center text-purple-800">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-purple-800">
           운세룸 - 내 마음의 이야기
         </h1>
         <p className="text-center text-yellow-500 text-sm">
@@ -180,7 +193,7 @@ export default function Home() {
               onChange={(e) => setReservationDate(e.target.value)}
             />
             <Button
-              className="mt-4 w-full"
+              className="mt-4 w-full md:w-auto"
               onClick={() => {
                 if (reservationDate) {
                   setReserved(true);
@@ -206,7 +219,7 @@ export default function Home() {
                   onChange={(e) => setQuestion(e.target.value)}
                 />
                 <Button
-                  className="mt-4 w-full"
+                  className="mt-4 w-full md:w-auto"
                   onClick={() => {
                     if (question) {
                       handlePayment();
@@ -247,7 +260,7 @@ export default function Home() {
                 <RatingStars value={rating} onChange={setRating} />
 
                 <Textarea
-                  className="w-full mt-2"
+                  className="w-full mt-2 text-sm sm:text-base"
                   placeholder="후기를 남겨주세요"
                   value={review}
                   onChange={(e) => setReview(e.target.value)}
@@ -255,13 +268,7 @@ export default function Home() {
 
                 <Button
                   className="mt-2 w-full"
-                  onClick={() => {
-                    if (review && rating > 0) {
-                      handleReviewSubmit();
-                    } else {
-                      alert("후기와 별점을 모두 입력해주세요!");
-                    }
-                  }}
+                  onClick={handleReviewSubmit}
                 >
                   후기 작성 완료
                 </Button>
@@ -270,19 +277,19 @@ export default function Home() {
           </Card>
         )}
 
-        {reviews.length > 0 && (
-          <Card>
-            <h2 className="text-lg font-semibold text-purple-700">💬 사용자 후기</h2>
+        <Card>
+          <h2 className="text-lg font-semibold text-purple-700">💬 사용자 후기</h2>
 
-            <Input
-              type="text"
-              className="my-2 w-full"
-              placeholder="후기 검색 (이름/내용/별점)"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <Input
+            type="text"
+            className="my-2"
+            placeholder="후기 검색 (이름/내용/별점)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-            {filteredReviews.map((r, index) => (
+          {filteredReviews.length > 0 ? (
+            filteredReviews.map((r, index) => (
               <div
                 key={index}
                 className="bg-white rounded-xl shadow p-4 mb-3 border border-purple-100"
@@ -307,9 +314,14 @@ export default function Home() {
                   })}
                 </p>
               </div>
-            ))}
-          </Card>
-        )}
+            ))
+          ) : (
+            <div className="text-center text-gray-500 text-sm p-4">
+              ❗아직 작성된 후기가 없어요.<br />
+              첫 번째 후기를 남겨주세요!
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );
