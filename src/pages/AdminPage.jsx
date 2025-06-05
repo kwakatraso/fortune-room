@@ -11,6 +11,7 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState([]);
   const [avgRating, setAvgRating] = useState(0);
   const [latestDate, setLatestDate] = useState("");
+  const [deletingIds, setDeletingIds] = useState([]);
 
   const correctPassword = "admin123";
 
@@ -53,11 +54,18 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (id) => {
-    const confirm = window.confirm("정말로 삭제할까요?");
-    if (!confirm) return;
+    const confirmDelete = window.confirm("정말로 삭제할까요?");
+    if (!confirmDelete) return;
 
-    await deleteDoc(doc(db, "reviews", id));
-    setReviews((prev) => prev.filter((r) => r.id !== id));
+    // 삭제 중인 ID 등록
+    setDeletingIds((prev) => [...prev, id]);
+
+    // 애니메이션 기다렸다가 삭제
+    setTimeout(async () => {
+      await deleteDoc(doc(db, "reviews", id));
+      setReviews((prev) => prev.filter((r) => r.id !== id));
+      setDeletingIds((prev) => prev.filter((d) => d !== id));
+    }, 300); // 300ms 후 삭제
   };
 
   if (!authenticated) {
@@ -88,14 +96,19 @@ export default function AdminPage() {
   }
 
   return (
-    <>
-      <div className="bg-purple-50 p-4 rounded-lg shadow text-sm space-y-1">
-        <p>📋 총 후기 수: <span className="font-semibold">{reviews.length}</span></p>
-        <p>⭐ 평균 별점: <span className="font-semibold">{avgRating}</span> / 5</p>
-        <p>🕒 최근 후기: <span className="text-gray-600">{latestDate || "없음"}</span></p>
+    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 font-serif">
+      {/* 상단 통계 박스 */}
+      <div className="bg-white rounded-xl border border-purple-200 shadow p-4 space-y-2 text-sm">
+        <h2 className="text-lg font-semibold text-purple-700">📊 후기 통계</h2>
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+          <p>📋 총 후기 수: <span className="font-bold text-purple-800">{reviews.length}</span></p>
+          <p>⭐ 평균 별점: <span className="font-bold text-yellow-500">{avgRating}</span> / 5</p>
+          <p>🕒 최근 후기: <span className="text-gray-600">{latestDate || "없음"}</span></p>
+        </div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4 space-y-4 font-serif">
+      {/* 후기 카드 리스트 */}
+      <div className="space-y-4">
         <h1 className="text-2xl font-bold text-center text-purple-700">🛠 관리자 후기 관리</h1>
 
         {reviews.length === 0 ? (
@@ -104,10 +117,14 @@ export default function AdminPage() {
           reviews.map((r) => (
             <Card
               key={r.id}
-              className="bg-white border border-purple-100 p-4 shadow"
+              className={`bg-white border border-purple-100 p-4 shadow transition-all duration-300 ease-in-out transform ${
+                deletingIds.includes(r.id) ? "opacity-0 scale-95" : "opacity-100 scale-100"
+              }`}
             >
               <div className="flex justify-between items-center mb-1">
-                <p className="font-semibold text-purple-800">{r.name || "익명"} ({r.advisor})</p>
+                <p className="font-semibold text-purple-800">
+                  {r.name || "익명"} ({r.advisor})
+                </p>
                 <p className="text-yellow-500 text-sm">
                   {"★".repeat(r.rating || 0)}{" "}
                   <span className="text-gray-400">({r.rating || 0})</span>
@@ -138,6 +155,6 @@ export default function AdminPage() {
           ))
         )}
       </div>
-    </>
+    </div>
   );
 }

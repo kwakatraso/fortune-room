@@ -7,6 +7,7 @@ import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { useEffect } from "react";
 import { RatingStars } from "../components/RatingStars";
+import { useRef } from "react";
 
 const advisors = [
   {
@@ -41,6 +42,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [typingIndex, setTypingIndex] = useState(0); // 타이핑 애니메이션용
   const [averageRating, setAverageRating] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(3); // 초기 3개만 표시
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -85,6 +87,8 @@ export default function Home() {
     setStep(3);
   };
 
+  const reviewListRef = useRef(null);
+  
   const handleReviewSubmit = async () => {
     if (!review || rating === 0) {
       alert("후기와 별점을 모두 입력해주세요!");
@@ -113,8 +117,17 @@ export default function Home() {
       setFortune("");
       setTypingIndex(0);
       setPaymentDone(false);
-      alert("✅ 후기 작성이 완료되었어요!");
+
       setStep(0); // 첫 화면으로 이동
+
+      // ✅ 후기 영역으로 부드럽게 이동
+      setTimeout(() => {
+        if (reviewListRef.current) {
+          reviewListRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 300);
+
+      alert("✅ 후기 작성이 완료되었어요!");
     } catch (e) {
       console.error("후기 저장 실패:", e);
       alert("❌ 저장 중 오류가 발생했어요.");
@@ -277,7 +290,7 @@ export default function Home() {
           </Card>
         )}
 
-        <Card>
+        <Card ref={reviewListRef}>
           <h2 className="text-lg font-semibold text-purple-700">💬 사용자 후기</h2>
 
           <Input
@@ -289,38 +302,52 @@ export default function Home() {
           />
 
           {filteredReviews.length > 0 ? (
-            filteredReviews.map((r, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl shadow p-4 mb-3 border border-purple-100"
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <p className="font-semibold text-purple-700">{r.name || "익명"}</p>
-                  {r.rating && (
-                    <p className="text-yellow-500 text-sm">
-                      {"★".repeat(r.rating)}{" "}
-                      <span className="text-gray-400 text-xs">({r.rating})</span>
-                    </p>
-                  )}
+            <>
+              {filteredReviews.slice(0, visibleCount).map((r, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl shadow p-4 mb-3 border border-purple-100"
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <p className="font-semibold text-purple-700">{r.name || "익명"}</p>
+                    {r.rating && (
+                      <p className="text-yellow-500 text-sm">
+                        {"★".repeat(r.rating)}{" "}
+                        <span className="text-gray-400 text-xs">({r.rating})</span>
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-gray-700 text-sm whitespace-pre-line">{r.content}</p>
+                  <p className="text-gray-400 text-xs text-right mt-2">
+                    {new Date(r.date).toLocaleDateString("ko-KR", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
                 </div>
-                <p className="text-gray-700 text-sm whitespace-pre-line">{r.content}</p>
-                <p className="text-gray-400 text-xs text-right mt-2">
-                  {new Date(r.date).toLocaleDateString("ko-KR", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            ))
+              ))}
+
+              {visibleCount < filteredReviews.length && (
+                <div className="text-center mt-2">
+                  <Button
+                    onClick={() => setVisibleCount((prev) => prev + 3)}
+                    className="text-purple-700 border border-purple-300 bg-white hover:bg-purple-50 transition"
+                  >
+                    후기 더 보기
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center text-gray-500 text-sm p-4">
               ❗아직 작성된 후기가 없어요.<br />
               첫 번째 후기를 남겨주세요!
             </div>
           )}
+
         </Card>
       </div>
     </div>
