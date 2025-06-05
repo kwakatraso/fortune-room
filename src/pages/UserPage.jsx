@@ -283,18 +283,29 @@ export default function Home() {
             />
 
             {filteredReviews.map((r, index) => (
-              <div key={index} className="border-b py-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-gray-800">{r.name || "익명"}</p>
+              <div
+                key={index}
+                className="bg-white rounded-xl shadow p-4 mb-3 border border-purple-100"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <p className="font-semibold text-purple-700">{r.name || "익명"}</p>
                   {r.rating && (
                     <p className="text-yellow-500 text-sm">
                       {"★".repeat(r.rating)}{" "}
-                      <span className="text-gray-400">({r.rating})</span>
+                      <span className="text-gray-400 text-xs">({r.rating})</span>
                     </p>
                   )}
                 </div>
-                <p className="text-gray-700 mt-1 break-words">{r.content}</p>
-                <p className="text-gray-400 text-xs mt-1">{new Date(r.date).toLocaleString()}</p>
+                <p className="text-gray-700 text-sm whitespace-pre-line">{r.content}</p>
+                <p className="text-gray-400 text-xs text-right mt-2">
+                  {new Date(r.date).toLocaleDateString("ko-KR", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
               </div>
             ))}
           </Card>
