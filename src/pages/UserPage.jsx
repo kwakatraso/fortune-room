@@ -46,6 +46,7 @@ export default function Home() {
     const fetchReviews = async () => {
       const snapshot = await getDocs(collection(db, "reviews"));
       const list = snapshot.docs.map((doc) => doc.data());
+      list.sort((a, b) => new Date(b.date) - new Date(a.date)); // 최신순 정렬
       setReviews(list);
 
       // ⭐ 평균 별점 계산
@@ -146,22 +147,20 @@ export default function Home() {
 
         {step === 0 && (
           <Card>
-            <p className="text-lg font-semibold mb-2">상담사를 선택하세요</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h2 className="text-xl font-bold text-purple-700 mb-2">1단계. 상담사 선택</h2>
+            <p className="text-sm text-gray-600 mb-4">마음이 가는 상담사를 선택해주세요.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {advisors.map((a) => (
                 <button
                   key={a.id}
-                  onClick={() => { setAdvisor(a); setStep(1); }}
-                  className="flex flex-col items-center border rounded-2xl p-4 bg-white hover:shadow-lg transition"
+                  onClick={() => {
+                    setAdvisor(a);
+                    setStep(1);
+                  }}
+                  className="border rounded-xl p-4 shadow hover:shadow-md transition text-left bg-white"
                 >
-                  <img
-                    src={a.image}
-                    alt={a.name}
-                    className="w-24 h-24 object-cover rounded-full mb-2"
-                  />
-                  <p className="font-bold">{a.name}</p>
-                  <p className="text-sm text-gray-600 mb-2">{a.desc}</p>
-                  <p className="text-xs text-gray-500">{a.intro}</p>
+                  <p className="font-bold text-lg">{a.name}</p>
+                  <p className="text-sm text-gray-500">{a.desc}</p>
                 </button>
               ))}
             </div>
@@ -169,145 +168,133 @@ export default function Home() {
         )}
 
         {step === 1 && (
-        <Card>
-            <p className="text-lg">상담 받을 날짜를 선택해주세요</p>
-            <Input
-            className="w-full md:w-auto"
-            type="date"
-            value={reservationDate}
-            onChange={(e) => setReservationDate(e.target.value)}
-            />
-            <Button
-            className="mt-2 w-full md:w-auto"
-            onClick={() => {
-                if (reservationDate) {
-                setReserved(true);
-                setStep(2); // 질문 입력 단계로 넘어감
-                }
-            }}
-            >
-            예약하고 질문 작성하기
-            </Button>
-        </Card>
-        )}
-
-
-        {step === 2 && (
           <Card>
-            <p className="text-lg mb-2">궁금한 질문을 입력해주세요</p>
-            <Textarea
-              placeholder="ex. 앞으로의 진로는 어떻게 될까요?"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
+            <h2 className="text-xl font-bold text-purple-700 mb-2">2단계. 예약 날짜 선택</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              상담을 원하는 날짜를 선택해주세요.
+            </p>
+            <Input
+              type="date"
+              className="w-full"
+              value={reservationDate}
+              onChange={(e) => setReservationDate(e.target.value)}
             />
             <Button
-              className="mt-2 w-full md:w-auto"
+              className="mt-4 w-full"
               onClick={() => {
-                if (question) {
-                  handlePayment();
-                  setStep(3);
+                if (reservationDate) {
+                  setReserved(true);
+                  setStep(2);
                 }
               }}
             >
-              운세 해석 요청 + 결제 시뮬
+              예약하고 다음 단계로 →
             </Button>
           </Card>
         )}
 
-        {step === 3 && (
+        {step === 2 && (
           <Card>
-            <h2 className="text-xl font-bold mb-2">🔮 운세 해석 결과</h2>
-            
-            {advisor && (
-              <div className="flex items-center gap-3 mb-4">
-                <img
-                  src={advisor.image}
-                  alt={advisor.name}
-                  className="w-12 h-12 rounded-full object-cover"
+            <h2 className="text-xl font-bold text-purple-700 mb-2">3단계. 질문 작성 및 결과 확인</h2>
+
+            {!paymentDone ? (
+              <>
+                <p className="text-sm text-gray-600 mb-2">궁금한 점을 입력해주세요</p>
+                <Textarea
+                  placeholder="ex. 앞으로의 진로는 어떻게 될까요?"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
                 />
-                <div>
-                  <p className="font-bold">{advisor.name}</p>
-                  <p className="text-xs text-gray-600">{advisor.desc}</p>
-                </div>
-              </div>
+                <Button
+                  className="mt-4 w-full"
+                  onClick={() => {
+                    if (question) {
+                      handlePayment();
+                      setPaymentDone(true);
+                    } else {
+                      alert("질문을 입력해주세요!");
+                    }
+                  }}
+                >
+                  운세 해석 요청 + 결제 시뮬
+                </Button>
+              </>
+            ) : (
+              <>
+                {/* 상담사 정보 표시 */}
+                {advisor && (
+                  <div className="flex items-center gap-3 mb-4 mt-2">
+                    <img
+                      src={advisor.image}
+                      alt={advisor.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-bold">{advisor.name}</p>
+                      <p className="text-xs text-gray-600">{advisor.desc}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 운세 결과 */}
+                <p className="mb-2 whitespace-pre-line">{fortune}</p>
+                <p className="text-sm text-gray-600 mb-4">
+                  예약일: {reservationDate} / 상담사: {advisor?.name}
+                </p>
+
+                {/* 후기 작성 */}
+                <p className="text-sm">별점을 선택해주세요:</p>
+                <RatingStars value={rating} onChange={setRating} />
+
+                <Textarea
+                  className="w-full mt-2"
+                  placeholder="후기를 남겨주세요"
+                  value={review}
+                  onChange={(e) => setReview(e.target.value)}
+                />
+
+                <Button
+                  className="mt-2 w-full"
+                  onClick={() => {
+                    if (review && rating > 0) {
+                      handleReviewSubmit();
+                    } else {
+                      alert("후기와 별점을 모두 입력해주세요!");
+                    }
+                  }}
+                >
+                  후기 작성 완료
+                </Button>
+              </>
             )}
-
-            <p className="mb-2 whitespace-pre-line">
-              {fortune.slice(0, typingIndex)}
-              {typingIndex < fortune.length && <span className="animate-pulse">|</span>}
-            </p>
-
-            <Button
-              className="mb-2 w-full md:w-auto"
-              onClick={handleCopyResult}
-            >
-              결과 공유하기
-            </Button>
-
-            <p className="text-sm text-gray-600 mb-4">
-              예약일: {reservationDate} / 상담사: {advisor?.name}
-            </p>
-
-            <RatingStars rating={rating} onChange={setRating} />
-
-            <Textarea
-              className="w-full md:w-auto"
-              placeholder="후기를 남겨주세요"
-              value={review}
-              onChange={(e) => setReview(e.target.value)}
-            />
-
-            <p className="mt-2 text-sm">별점을 선택해주세요:</p>
-            <RatingStars value={rating} onChange={setRating} />
-
-            <Button
-              className="mt-2 w-full md:w-auto"
-              onClick={() => {
-                if (review && rating > 0) {
-                  handleReviewSubmit();
-                } else {
-                  alert("후기와 별점을 모두 입력해주세요!");
-                }
-              }}
-            >
-              후기 작성하기
-            </Button>
-
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-1">📣 후기</h3>
-              {reviews.map((r, i) => (
-                <div key={i} className="border-t pt-2 text-sm text-gray-700">
-                  <p>
-                    ⭐{" "}
-                    {typeof r === "string"
-                      ? "(별점 없음)"
-                      : "★".repeat(r.rating || 0)}
-                  </p>
-                  <p>{typeof r === "string" ? r : r.content}</p>
-                </div>
-              ))}
-            </div>
           </Card>
         )}
 
         {reviews.length > 0 && (
           <Card>
-            <h2 className="text-lg font-semibold">💬 사용자 후기</h2>
+            <h2 className="text-lg font-semibold text-purple-700">💬 사용자 후기</h2>
+
             <Input
               type="text"
-              className="w-full md:w-auto"
-              placeholder="후기 검색 (상담사/내용/별점)"
+              className="my-2 w-full"
+              placeholder="후기 검색 (이름/내용/별점)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
 
             {filteredReviews.map((r, index) => (
-              <div key={index} className="border-b py-2">
-                <p className="font-bold">{typeof r === "object" ? r.name : "익명"}</p>
-                {typeof r === "object" && r.rating && (
-                  <p className="text-yellow-500">{"★".repeat(r.rating)}</p>
-                )}
-                <p>{typeof r === "object" ? r.content : r}</p>
+              <div key={index} className="border-b py-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <p className="font-semibold text-gray-800">{r.name || "익명"}</p>
+                  {r.rating && (
+                    <p className="text-yellow-500 text-sm">
+                      {"★".repeat(r.rating)}{" "}
+                      <span className="text-gray-400">({r.rating})</span>
+                    </p>
+                  )}
+                </div>
+                <p className="text-gray-700 mt-1 break-words">{r.content}</p>
+                <p className="text-gray-400 text-xs mt-1">{new Date(r.date).toLocaleString()}</p>
               </div>
             ))}
           </Card>

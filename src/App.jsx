@@ -6,13 +6,13 @@ import {
 import UserPage from "./pages/UserPage";
 import AdvisorPage from "./pages/AdvisorPage";
 import AdminPage from "./pages/AdminPage";
-import React, { useState } from "react";
+import React from "react";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<RoleSelector />} />
+        <Route path="/" element={<Home />} />
         <Route path="/user" element={<UserPage />} />
         <Route path="/advisor" element={<AdvisorPage />} />
         <Route path="/admin" element={<AdminPage />} />
@@ -21,31 +21,31 @@ function App() {
   );
 }
 
-function RoleSelector() {
-  const [role, setRole] = useState(null);
+function Home() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 font-sans p-6">
+      <div className="max-w-xl mx-auto space-y-6 text-center">
+        <h1 className="text-4xl font-extrabold text-purple-700">운세룸</h1>
+        <p className="text-gray-600 text-lg">진짜 타로마스터와의 나만의 운세 상담</p>
 
-  if (!role) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-purple-100 to-pink-100 font-serif p-4">
-        <h1 className="text-3xl font-bold text-purple-700 mb-4">운세룸</h1>
-        <p className="mb-2">접속 유형을 선택하세요</p>
-        <div className="space-x-4">
-          <a href="/user">
-            <button className="px-4 py-2 bg-purple-500 text-white rounded-lg shadow">
-              사용자
-            </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+          <a href="/user" className="block bg-white p-6 rounded-2xl shadow hover:shadow-xl transition">
+            <img src="/images/user-icon.png" className="w-16 h-16 mx-auto mb-2" alt="사용자" />
+            <h2 className="font-bold text-purple-600">사용자로 입장</h2>
+            <p className="text-sm text-gray-500 mt-1">운세를 직접 받고 후기도 남겨보세요</p>
           </a>
-          <a href="/advisor">
-            <button className="px-4 py-2 bg-pink-500 text-white rounded-lg shadow">
-              상담사
-            </button>
+
+          <a href="/advisor" className="block bg-white p-6 rounded-2xl shadow hover:shadow-xl transition">
+            <img src="/images/advisor-icon.png" className="w-16 h-16 mx-auto mb-2" alt="상담사" />
+            <h2 className="font-bold text-pink-600">상담사로 입장</h2>
+            <p className="text-sm text-gray-500 mt-1">상담을 제공하고 후기도 확인해요</p>
           </a>
         </div>
-      </div>
-    );
-  }
 
-  return null; // 여긴 안 쓰이게 될 것
+        <p className="text-xs text-gray-400 mt-12">© 2025 운세룸. All rights reserved.</p>
+      </div>
+    </div>
+  );
 }
 
 export default App;
