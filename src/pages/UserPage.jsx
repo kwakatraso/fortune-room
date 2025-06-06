@@ -50,7 +50,6 @@ export default function UserPage() {
 
   const submitConsult = async () => {
     if (!selectedAdvisor || !question) return alert("상담사와 질문을 모두 입력해주세요");
-
     try {
       await addDoc(collection(db, "consults"), {
         uid: user.uid,
@@ -60,7 +59,6 @@ export default function UserPage() {
         answer: "",
         createdAt: new Date().toISOString(),
       });
-
       alert("상담 신청이 완료되었습니다.");
       setMode("choose");
       setSelectedAdvisor(null);
@@ -86,7 +84,6 @@ export default function UserPage() {
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
-
         {/* 상단 버튼은 applyInput 모드에서는 숨김 */}
         {mode !== "applyInput" && (
           <div className="flex justify-center gap-4 mb-6">
@@ -97,6 +94,7 @@ export default function UserPage() {
           </div>
         )}
 
+        {/* 상담사 선택 및 후기 보기 */}
         {mode === "apply" && (
           <div>
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">상담사 선택</h2>
@@ -136,6 +134,7 @@ export default function UserPage() {
           </div>
         )}
 
+        {/* 상담 내용 입력 폼 */}
         {mode === "applyInput" && selectedAdvisor && (
           <div className="mt-6">
             <Card className="p-4">
@@ -169,6 +168,7 @@ export default function UserPage() {
           </div>
         )}
 
+        {/* 기존 상담 확인 */}
         {mode === "check" && (
           <div>
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">📋 나의 상담 목록</h2>
