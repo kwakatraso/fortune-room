@@ -89,7 +89,7 @@ export default function UserPage() {
     setQuestion("");
   };
 
-  const submitReview = async (consultId, advisor, text, rating) => {
+  const submitReview = async (consultId, advisor, text, rating, question) => {
     if (!text.trim() || rating === 0) {
       alert("후기 내용과 별점을 모두 입력해주세요.");
       return;
@@ -102,6 +102,7 @@ export default function UserPage() {
       rating,
       date: new Date().toISOString(),
       name: user.displayName || "익명",
+      question,
     });
     alert("후기가 등록되었습니다.");
     setReviews((prev) => [...prev, consultId]);
@@ -222,8 +223,9 @@ export default function UserPage() {
                         <option value={5}>⭐ 5점</option>
                       </select>
                       <Button
+                        className="mt-2"
                         onClick={() =>
-                          submitReview(c.id, c.advisor, reviewTexts[c.id], reviewRatings[c.id])
+                          submitReview(c.id, c.advisor, reviewTexts[c.id], reviewRatings[c.id], c.question)
                         }
                       >
                         후기 작성
