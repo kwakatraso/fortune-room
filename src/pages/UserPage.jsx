@@ -42,14 +42,17 @@ export default function UserPage() {
 
   const toggleAdvisor = (advisor) => {
     if (selectedAdvisor?.id === advisor.id) {
-      setSelectedAdvisor(null); // 선택 해제
+      setSelectedAdvisor(null); // 해제
     } else {
       setSelectedAdvisor(advisor); // 선택
     }
   };
 
   const submitConsult = async () => {
-    if (!selectedAdvisor || !question) return alert("상담사와 질문을 모두 입력해주세요");
+    if (!selectedAdvisor || !question.trim()) {
+      alert("상담사와 질문을 모두 입력해주세요");
+      return;
+    }
     try {
       await addDoc(collection(db, "consults"), {
         uid: user.uid,
@@ -96,7 +99,7 @@ export default function UserPage() {
               {advisors.map((a) => (
                 <Card
                   key={a.id}
-                  className={`relative cursor-pointer transition duration-200 ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
+                  className={`relative cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
                   onClick={() => toggleAdvisor(a)}
                 >
                   <div className="flex items-center gap-3">
@@ -107,24 +110,22 @@ export default function UserPage() {
                     </div>
                   </div>
                   <p className="text-xs mt-2 text-gray-500">{a.intro}</p>
-                  {selectedAdvisor?.id === a.id && (
-                    <div className="mt-3">
-                      <button
-                        className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setMode("applyInput");
-                        }}
-                      >
-                        선택
-                      </button>
-                    </div>
-                  )}
+                  <div className="mt-3">
+                    <button
+                      className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMode("applyInput");
+                      }}
+                    >
+                      선택
+                    </button>
+                  </div>
                 </Card>
               ))}
             </div>
 
-            <ReviewList advisor={selectedAdvisor?.name || null} key={selectedAdvisor?.id || "all"} />
+            <ReviewList advisor={selectedAdvisor?.name || ""} key={selectedAdvisor?.id || "all"} />
           </div>
         )}
 
@@ -133,7 +134,9 @@ export default function UserPage() {
             <Button onClick={() => setMode("apply")} className="mb-3">
               ← 뒤로
             </Button>
-            <h3 className="text-lg font-semibold mb-2 text-purple-700">상담 질문 입력</h3>
+            <h3 className="text-lg font-semibold mb-2 text-purple-700">
+              {selectedAdvisor.name} 상담사에게 질문하기
+            </h3>
             <Textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}

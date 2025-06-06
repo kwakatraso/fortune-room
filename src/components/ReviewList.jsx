@@ -26,10 +26,10 @@ export default function ReviewList({ advisor }) {
       filtered = filtered.filter((r) => r.advisor === advisor);
     }
 
-    // 검색 필터
+    // 내용 검색 필터
     if (search) {
       filtered = filtered.filter((r) =>
-        r.content?.toLowerCase().includes(search.toLowerCase())
+        r.content.toLowerCase().includes(search.toLowerCase())
       );
     }
 
@@ -55,7 +55,7 @@ export default function ReviewList({ advisor }) {
   return (
     <div className="bg-white bg-opacity-60 p-4 rounded-xl shadow mt-6">
       <h3 className="text-lg font-bold text-purple-700 mb-4">
-        📝 {advisor ? `${advisor} 상담사에 대한 후기` : "전체 상담 후기"}
+        📝 {advisor ? `${advisor} 상담사에 대한 후기` : "상담 후기 목록"}
       </h3>
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
