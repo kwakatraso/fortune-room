@@ -28,7 +28,7 @@ function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 flex items-center justify-center font-serif p-6">
+    <div className="w-screen h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 flex items-center justify-center font-serif p-6">
       <div className="text-center space-y-8 max-w-xl w-full">
         <div>
           <h1 className="text-4xl sm:text-5xl font-bold text-purple-800">운세룸</h1>
