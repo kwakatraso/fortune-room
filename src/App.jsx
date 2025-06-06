@@ -46,7 +46,7 @@ function Home() {
 
           <Card className="cursor-pointer hover:shadow-xl transition p-6">
             <h2 className="text-xl font-bold text-pink-600 mb-2">🛠 상담사 입장</h2>
-            <p className="text-sm text-gray-600">상담 진행 및 관리하려면</p>
+            <p className="text-sm text-gray-600">상담을 진행 및 관리하려면</p>
             <Button className="mt-6 w-full" onClick={() => navigate("/admin")}>
               상담사로 입장
             </Button>
