@@ -53,12 +53,8 @@ export default function AdvisorPage() {
           let birthTime = "-";
 
           if (consult.uid) {
-            const userQuery = query(
-              collection(db, "users"),
-              where("uid", "==", consult.uid)
-            );
-            const userSnap = await getDocs(userQuery);
-            const userData = userSnap.docs[0]?.data();
+            const userDoc = await getDoc(doc(db, "users", consult.uid));
+            const userData = userDoc.exists() ? userDoc.data() : null;
             if (userData) {
               birth = userData.birth || "-";
               birthTime = userData.birthTime || "-";
