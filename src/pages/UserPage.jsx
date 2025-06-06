@@ -43,6 +43,8 @@ export default function Home() {
   const [typingIndex, setTypingIndex] = useState(0); // 타이핑 애니메이션용
   const [averageRating, setAverageRating] = useState(0);
   const [visibleCount, setVisibleCount] = useState(3); // 초기 3개만 표시
+  const [sortOption, setSortOption] = useState("latest");
+  const [ratingFilter, setRatingFilter] = useState(null); // null은 전체 보기
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -160,6 +162,20 @@ export default function Home() {
     });
   };
 
+  const processedReviews = [...filteredReviews]
+    .filter((r) => (ratingFilter ? r.rating === ratingFilter : true))
+    .sort((a, b) => {
+      if (sortOption === "latest") {
+        return new Date(b.date) - new Date(a.date);
+      }
+      if (sortOption === "high") {
+        return b.rating - a.rating;
+      }
+      if (sortOption === "low") {
+        return a.rating - b.rating;
+      }
+      return 0;
+    });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 font-serif p-4 md:p-6">
@@ -301,9 +317,36 @@ export default function Home() {
             onChange={(e) => setSearch(e.target.value)}
           />
 
+          <div className="flex flex-wrap gap-2 my-2 text-sm">
+            <select
+              className="border px-2 py-1 rounded"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              <option value="latest">🕒 최신순</option>
+              <option value="high">⭐ 별점 높은 순</option>
+              <option value="low">⭐ 별점 낮은 순</option>
+            </select>
+
+            <select
+              className="border px-2 py-1 rounded"
+              value={ratingFilter || ""}
+              onChange={(e) =>
+                setRatingFilter(e.target.value ? parseInt(e.target.value) : null)
+              }
+            >
+              <option value="">전체 별점</option>
+              <option value="5">⭐ 5점만</option>
+              <option value="4">⭐ 4점만</option>
+              <option value="3">⭐ 3점만</option>
+              <option value="2">⭐ 2점만</option>
+              <option value="1">⭐ 1점만</option>
+            </select>
+          </div>
+
           {filteredReviews.length > 0 ? (
             <>
-              {filteredReviews.slice(0, visibleCount).map((r, index) => (
+              {processedReviews.slice(0, visibleCount).map((r, index) => (
                 <div
                   key={index}
                   className="bg-white rounded-xl shadow p-4 mb-3 border border-purple-100"
@@ -330,7 +373,7 @@ export default function Home() {
                 </div>
               ))}
 
-              {visibleCount < filteredReviews.length && (
+              {visibleCount < processedReviews.length && (
                 <div className="text-center mt-2">
                   <Button
                     onClick={() => setVisibleCount((prev) => prev + 3)}
