@@ -6,13 +6,12 @@ import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const [form, setForm] = useState({
+    id: "",
+    password: "",
     name: "",
     birth: "",
     birthTime: "",
     phone: "",
-    email: "",
-    password: "",
-    role: "user", // 기본값
   });
 
   const navigate = useNavigate();
@@ -24,25 +23,27 @@ export default function Signup() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
+    // Firebase auth는 email이 필요하므로 아이디를 이메일 형식으로 변환
+    const emailFake = `${form.id}@user.com`;
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        form.email,
+        emailFake,
         form.password
       );
       const uid = userCredential.user.uid;
 
-      // 사용자 정보 Firestore에 저장
       await setDoc(doc(db, "users", uid), {
+        id: form.id,
         name: form.name,
         birth: form.birth,
         birthTime: form.birthTime,
         phone: form.phone,
-        email: form.email,
-        role: form.role,
+        role: "user", // 고정
       });
 
-      alert("회원가입 완료!");
+      alert("회원가입이 완료되었습니다!");
       navigate("/login");
     } catch (err) {
       console.error(err);
@@ -58,70 +59,93 @@ export default function Signup() {
       >
         <h2 className="text-2xl font-bold text-purple-700 text-center mb-4">회원가입</h2>
 
-        <input
-          type="text"
-          name="name"
-          placeholder="이름"
-          value={form.name}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="date"
-          name="birth"
-          placeholder="생년월일"
-          value={form.birth}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="time"
-          name="birthTime"
-          placeholder="태어난 시각"
-          value={form.birthTime}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="tel"
-          name="phone"
-          placeholder="전화번호 (숫자만)"
-          value={form.phone}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="이메일"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="비밀번호"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
+        <div>
+          <label className="text-sm text-gray-600">아이디</label>
+          <input
+            type="text"
+            name="id"
+            placeholder="아이디 입력"
+            value={form.id}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
+          />
+        </div>
 
-        <select
-          name="role"
-          value={form.role}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        >
-          <option value="user">사용자</option>
-          <option value="advisor">상담사</option>
-        </select>
+        <div>
+          <label className="text-sm text-gray-600">비밀번호</label>
+          <input
+            type="password"
+            name="password"
+            placeholder="비밀번호 입력"
+            value={form.password}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-600">이름</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="이름 입력"
+            value={form.name}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-600">생년월일 (8자리)</label>
+          <input
+            type="text"
+            name="birth"
+            placeholder="예: 19990101"
+            value={form.birth}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
+            pattern="\d{8}"
+            title="8자리 숫자로 입력해주세요"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-600">태어난 시각 (선택)</label>
+          <input
+            type="text"
+            name="birthTime"
+            placeholder="예: 14:30 또는 모름"
+            value={form.birthTime}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          />
+          <div className="text-right mt-1">
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, birthTime: "모름" })}
+              className="text-xs text-purple-600 underline"
+            >
+              시각을 모르겠어요
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-600">전화번호</label>
+          <input
+            type="tel"
+            name="phone"
+            placeholder="숫자만 입력 (예: 01012345678)"
+            value={form.phone}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
+          />
+        </div>
 
         <button
           type="submit"
