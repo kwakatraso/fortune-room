@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDocs, query, where, collection } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -14,60 +14,56 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const fakeEmail = `${form.id}@user.com`;
 
     try {
-      // Firestore에서 ID로 유저 문서 검색
-      const q = query(collection(db, "users"), where("id", "==", form.id));
-      const snapshot = await getDocs(q);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        fakeEmail,
+        form.password
+      );
+      const uid = userCredential.user.uid;
 
-      if (snapshot.empty) {
-        alert("존재하지 않는 아이디입니다.");
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (!userDoc.exists()) {
+        alert("❌ 사용자 정보가 존재하지 않습니다.");
         return;
       }
 
-      const userData = snapshot.docs[0].data();
-      const uid = snapshot.docs[0].id;
-      const email = `${form.id}@user.com`;
+      const role = userDoc.data().role;
+      alert("✅ 로그인 성공!");
 
-      // Auth로 로그인 시도
-      await signInWithEmailAndPassword(auth, email, form.password);
-
-      alert("로그인 성공!");
-
-      // 역할에 따라 이동
-      if (userData.role === "user") {
+      if (role === "user") {
         navigate("/user");
-      } else if (userData.role === "advisor") {
+      } else if (role === "advisor") {
         navigate("/advisor");
       } else {
+        alert("알 수 없는 사용자 유형입니다.");
         navigate("/");
       }
     } catch (err) {
       console.error(err);
-      alert("로그인 실패. 아이디 또는 비밀번호를 확인해주세요.");
+      alert("❌ 로그인 실패: 아이디 또는 비밀번호를 확인해주세요.");
     }
   };
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 flex items-center justify-center p-4">
+    <div className="w-screen h-screen bg-gradient-to-b from-purple-100 to-pink-100 flex items-center justify-center p-4">
       <form
         onSubmit={handleLogin}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md space-y-4"
       >
-        <h2 className="text-2xl font-bold text-purple-700 text-center mb-4">
-          로그인
-        </h2>
+        <h2 className="text-2xl font-bold text-purple-700 text-center mb-4">로그인</h2>
 
         <input
           type="text"
           name="id"
-          placeholder="아이디 입력"
+          placeholder="아이디"
           value={form.id}
           onChange={handleChange}
           className="w-full border p-2 rounded"
           required
         />
-
         <input
           type="password"
           name="password"
