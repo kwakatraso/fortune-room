@@ -5,7 +5,6 @@ import { auth, db } from "../firebase";
 import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import ReviewList from "../components/ReviewList";
 
@@ -40,6 +39,14 @@ export default function UserPage() {
       else navigate("/login");
     });
   }, [navigate]);
+
+  const toggleAdvisor = (advisor) => {
+    if (selectedAdvisor?.id === advisor.id) {
+      setSelectedAdvisor(null); // toggle off
+    } else {
+      setSelectedAdvisor(advisor); // toggle on
+    }
+  };
 
   const submitConsult = async () => {
     if (!selectedAdvisor || !question) return alert("상담사와 질문을 모두 입력해주세요");
@@ -78,7 +85,7 @@ export default function UserPage() {
     <div className="w-screen h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={() => setMode("apply")}>📩 새로운 상담 신청</Button>
+          <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>📩 새로운 상담 신청</Button>
           <Button onClick={() => setMode("check")}>📜 기존 상담 확인</Button>
         </div>
 
@@ -90,7 +97,7 @@ export default function UserPage() {
                 <Card
                   key={a.id}
                   className={`cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
-                  onClick={() => setSelectedAdvisor(a)}
+                  onClick={() => toggleAdvisor(a)}
                 >
                   <div className="flex items-center gap-3">
                     <img src={a.image} className="w-12 h-12 rounded-full" alt={a.name} />
@@ -114,12 +121,16 @@ export default function UserPage() {
                 </Card>
               ))}
             </div>
-            {selectedAdvisor && <ReviewList advisor={selectedAdvisor.name} />}
+
+            <ReviewList advisor={selectedAdvisor?.name} />
           </div>
         )}
 
         {mode === "applyInput" && selectedAdvisor && (
           <div className="mt-6">
+            <Button onClick={() => setMode("apply")} className="mb-3">
+              ← 뒤로
+            </Button>
             <h3 className="text-lg font-semibold mb-2 text-purple-700">상담 질문 입력</h3>
             <Textarea
               value={question}
@@ -142,9 +153,7 @@ export default function UserPage() {
                 <Card key={c.id} className="mb-4">
                   <p className="text-sm text-gray-600 mb-1">🧙 상담사: {c.advisor}</p>
                   <p className="text-sm whitespace-pre-line">💬 질문: {c.question}</p>
-                  <p className="text-sm whitespace-pre-line mt-2">
-                    ✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}
-                  </p>
+                  <p className="text-sm whitespace-pre-line mt-2">✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}</p>
                   <p className="text-xs text-right text-gray-400 mt-2">
                     작성일: {new Date(c.createdAt).toLocaleDateString("ko-KR")}
                   </p>

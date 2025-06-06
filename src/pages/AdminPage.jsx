@@ -5,14 +5,12 @@ import {
   deleteDoc,
   doc,
   setDoc,
-  getDoc,
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import ReviewList from "../components/ReviewList";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
@@ -26,8 +24,6 @@ export default function AdminPage() {
     password: "",
     name: "",
     phone: "",
-    birth: "",
-    birthTime: "",
   });
 
   const correctPassword = "admin123";
@@ -92,7 +88,7 @@ export default function AdminPage() {
       });
 
       alert("✅ 상담사 등록 완료!");
-      setNewAdvisor({ id: "", password: "", name: "", phone: "", birth: "", birthTime: "" });
+      setNewAdvisor({ id: "", password: "", name: "", phone: "" });
     } catch (err) {
       console.error(err);
       alert("❌ 상담사 등록 실패: " + err.message);
@@ -135,29 +131,9 @@ export default function AdminPage() {
           <input name="password" type="password" placeholder="비밀번호" value={newAdvisor.password} onChange={(e) => setNewAdvisor({ ...newAdvisor, password: e.target.value })} className="border p-2 rounded" required />
           <input name="name" placeholder="이름" value={newAdvisor.name} onChange={(e) => setNewAdvisor({ ...newAdvisor, name: e.target.value })} className="border p-2 rounded" required />
           <input name="phone" placeholder="전화번호" value={newAdvisor.phone} onChange={(e) => setNewAdvisor({ ...newAdvisor, phone: e.target.value })} className="border p-2 rounded" required />
-          <input name="birth" placeholder="생년월일 (8자리)" value={newAdvisor.birth} onChange={(e) => setNewAdvisor({ ...newAdvisor, birth: e.target.value })} className="border p-2 rounded" required />
-          <select name="birthTime" value={newAdvisor.birthTime} onChange={(e) => setNewAdvisor({ ...newAdvisor, birthTime: e.target.value })} className="border p-2 rounded" required>
-            <option value="">-- 생시 선택 --</option>
-            <option value="자시">자시 (23:30~1:30)</option>
-            <option value="축시">축시 (1:30~3:30)</option>
-            <option value="인시">인시 (3:30~5:30)</option>
-            <option value="묘시">묘시 (5:30~7:30)</option>
-            <option value="진시">진시 (7:30~9:30)</option>
-            <option value="사시">사시 (9:30~11:30)</option>
-            <option value="오시">오시 (11:30~13:30)</option>
-            <option value="미시">미시 (13:30~15:30)</option>
-            <option value="신시">신시 (15:30~17:30)</option>
-            <option value="유시">유시 (17:30~19:30)</option>
-            <option value="술시">술시 (19:30~21:30)</option>
-            <option value="해시">해시 (21:30~23:30)</option>
-            <option value="모름">모름</option>
-          </select>
           <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white py-2">상담사 등록</Button>
         </form>
       </Card>
-
-      {/* 후기 필터 및 정렬용 UI */}
-      <ReviewList advisor={""} />
 
       <div className="bg-white rounded-xl border border-purple-200 shadow p-4 space-y-2 text-sm">
         <h2 className="text-lg font-semibold text-purple-700">📊 후기 통계</h2>
@@ -176,9 +152,7 @@ export default function AdminPage() {
           reviews.map((r) => (
             <Card
               key={r.id}
-              className={`bg-white border border-purple-100 p-4 shadow transition-all duration-300 ease-in-out transform ${
-                deletingIds.includes(r.id) ? "opacity-0 scale-95" : "opacity-100 scale-100"
-              }`}
+              className={`bg-white border border-purple-100 p-4 shadow transition-all duration-300 ease-in-out transform ${deletingIds.includes(r.id) ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}
             >
               <div className="flex justify-between items-center mb-1">
                 <p className="font-semibold text-purple-800">{r.name || "익명"} ({r.advisor})</p>
