@@ -181,8 +181,7 @@ export default function AdminPage() {
               </div>
               <p className="text-gray-600 text-sm mb-2 whitespace-pre-line">{r.content}</p>
               <div className="text-xs text-gray-400">
-                예약일: {r.reservationDate || "-"}<br />
-                질문: {r.question || "-"}<br />
+                질문: {r.question || "내용 없음"}<br />
                 작성일: {r.date && new Date(r.date).toLocaleString("ko-KR", {
                   year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
                 })}
