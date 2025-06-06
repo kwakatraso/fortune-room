@@ -19,7 +19,6 @@ export default function AdvisorPage() {
   const [advisorName, setAdvisorName] = useState("");
   const [tab, setTab] = useState("pending"); // pending | answered
 
-  // 상담사 이름 가져오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -38,7 +37,6 @@ export default function AdvisorPage() {
     return () => unsubscribe();
   }, []);
 
-  // 상담 요청 불러오기
   useEffect(() => {
     if (!advisorName) return;
 
@@ -63,10 +61,7 @@ export default function AdvisorPage() {
 
   const submitAnswer = async (id) => {
     const answer = answers[id];
-    if (!answer) {
-      alert("답변을 입력해주세요.");
-      return;
-    }
+    if (!answer) return alert("답변을 입력해주세요.");
 
     await updateDoc(doc(db, "consults", id), {
       answer,
@@ -94,13 +89,17 @@ export default function AdvisorPage() {
       <div className="flex justify-center gap-4 mb-6">
         <Button
           onClick={() => setTab("pending")}
-          className={tab === "pending" ? "bg-purple-600 text-white" : ""}
+          className={`px-4 py-2 rounded ${
+            tab === "pending" ? "bg-purple-600 text-white" : "bg-white"
+          }`}
         >
           📥 대기중 상담
         </Button>
         <Button
           onClick={() => setTab("answered")}
-          className={tab === "answered" ? "bg-purple-600 text-white" : ""}
+          className={`px-4 py-2 rounded ${
+            tab === "answered" ? "bg-purple-600 text-white" : "bg-white"
+          }`}
         >
           ✅ 답변 완료
         </Button>
