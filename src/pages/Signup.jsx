@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { collection, doc, setDoc, query, where, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const [form, setForm] = useState({
     id: "",
     password: "",
+    confirmPassword: "",
     name: "",
     birth: "",
     birthTime: "",
@@ -20,18 +21,30 @@ export default function Signup() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const checkDuplicateId = async (id) => {
+    const q = query(collection(db, "users"), where("id", "==", id));
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    // Firebase auth는 email이 필요하므로 아이디를 이메일 형식으로 변환
-    const emailFake = `${form.id}@user.com`;
+    if (form.password !== form.confirmPassword) {
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    const isDuplicate = await checkDuplicateId(form.id);
+    if (isDuplicate) {
+      alert("이미 존재하는 아이디입니다.");
+      return;
+    }
+
+    const fakeEmail = `${form.id}@user.com`;
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        emailFake,
-        form.password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, form.password);
       const uid = userCredential.user.uid;
 
       await setDoc(doc(db, "users", uid), {
@@ -40,7 +53,7 @@ export default function Signup() {
         birth: form.birth,
         birthTime: form.birthTime,
         phone: form.phone,
-        role: "user", // 고정
+        role: "user",
       });
 
       alert("회원가입이 완료되었습니다!");
@@ -52,7 +65,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 flex items-center justify-center p-4">
+    <div className="w-screen h-screen flex items-center justify-center bg-gradient-to-b from-purple-100 via-white to-pink-100">
       <form
         onSubmit={handleSignup}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md space-y-4"
@@ -86,6 +99,19 @@ export default function Signup() {
         </div>
 
         <div>
+          <label className="text-sm text-gray-600">비밀번호 확인</label>
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="비밀번호 재입력"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
+          />
+        </div>
+
+        <div>
           <label className="text-sm text-gray-600">이름</label>
           <input
             type="text"
@@ -99,11 +125,11 @@ export default function Signup() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-600">생년월일 (8자리)</label>
+          <label className="text-sm text-gray-600">생년월일 (8자리, 예: 19990101)</label>
           <input
             type="text"
             name="birth"
-            placeholder="예: 19990101"
+            placeholder="19990101"
             value={form.birth}
             onChange={handleChange}
             className="w-full border p-2 rounded"
@@ -114,13 +140,13 @@ export default function Signup() {
         </div>
 
         <div>
-        <label className="text-sm text-gray-600">태어난 시각 (생시)</label>
-        <select
+          <label className="text-sm text-gray-600">태어난 시각 (생시)</label>
+          <select
             name="birthTime"
             value={form.birthTime}
             onChange={handleChange}
             className="w-full border p-2 rounded"
-        >
+          >
             <option value="">-- 생시 선택 --</option>
             <option value="자시">자시 (23:30~1:30)</option>
             <option value="축시">축시 (1:30~3:30)</option>
@@ -135,17 +161,16 @@ export default function Signup() {
             <option value="술시">술시 (19:30~21:30)</option>
             <option value="해시">해시 (21:30~23:30)</option>
             <option value="모름">모름</option>
-        </select>
-
-        <div className="text-right mt-1">
+          </select>
+          <div className="text-right mt-1">
             <button
-            type="button"
-            onClick={() => setForm({ ...form, birthTime: "모름" })}
-            className="text-xs text-purple-600 underline"
+              type="button"
+              onClick={() => setForm({ ...form, birthTime: "모름" })}
+              className="text-xs text-purple-600 underline"
             >
-            시각을 모르겠어요
+              시각을 모르겠어요
             </button>
-        </div>
+          </div>
         </div>
 
         <div>
