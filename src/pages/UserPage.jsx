@@ -156,7 +156,7 @@ export default function Home() {
           <Input
             type="text"
             className="my-2"
-            placeholder="후기 검색 (이름/내용/별점)"
+            placeholder="후기 검색 (내용/별점)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

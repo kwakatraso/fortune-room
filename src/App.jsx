@@ -8,6 +8,8 @@ import UserPage from "./pages/UserPage";
 import AdvisorPage from "./pages/AdvisorPage";
 import AdminPage from "./pages/AdminPage";
 import React from "react";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
 import { Card } from "./components/ui/Card";
 import { Button } from "./components/ui/Button";
 
@@ -19,6 +21,8 @@ function App() {
         <Route path="/user" element={<UserPage />} />
         <Route path="/advisor" element={<AdvisorPage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
       </Routes>
     </Router>
   );
@@ -39,7 +43,7 @@ function Home() {
           <Card className="cursor-pointer hover:shadow-xl transition p-6">
             <h2 className="text-xl font-bold text-purple-700 mb-2">🔮 사용자 입장</h2>
             <p className="text-sm text-gray-600">운세를 보고 상담을 받고 싶다면</p>
-            <Button className="mt-6 w-full" onClick={() => navigate("/user")}>
+            <Button className="mt-6 w-full" onClick={() => navigate("/login?role=user")}>
               사용자로 입장
             </Button>
           </Card>
@@ -47,7 +51,7 @@ function Home() {
           <Card className="cursor-pointer hover:shadow-xl transition p-6">
             <h2 className="text-xl font-bold text-pink-600 mb-2">🛠 상담사 입장</h2>
             <p className="text-sm text-gray-600">상담을 진행 및 관리하려면</p>
-            <Button className="mt-6 w-full" onClick={() => navigate("/admin")}>
+            <Button className="mt-6 w-full" onClick={() => navigate("/login?role=advisor")}>
               상담사로 입장
             </Button>
           </Card>
