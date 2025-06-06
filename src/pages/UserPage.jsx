@@ -40,16 +40,9 @@ export default function UserPage() {
     });
   }, [navigate]);
 
-  const toggleAdvisor = (advisor) => {
-    if (selectedAdvisor?.id === advisor.id) {
-      setSelectedAdvisor(null);
-    } else {
-      setSelectedAdvisor(advisor);
-    }
-  };
-
   const submitConsult = async () => {
     if (!selectedAdvisor || !question) return alert("상담사와 질문을 모두 입력해주세요");
+
     try {
       await addDoc(collection(db, "consults"), {
         uid: user.uid,
@@ -59,6 +52,7 @@ export default function UserPage() {
         answer: "",
         createdAt: new Date().toISOString(),
       });
+
       alert("상담 신청이 완료되었습니다.");
       setMode("choose");
       setSelectedAdvisor(null);
@@ -84,8 +78,7 @@ export default function UserPage() {
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* 상단 버튼은 applyInput 모드에서는 숨김 */}
-        {mode !== "applyInput" && (
+        {(mode === "choose" || mode === "apply") && (
           <div className="flex justify-center gap-4 mb-6">
             <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>
               📩 새로운 상담 신청
@@ -94,18 +87,19 @@ export default function UserPage() {
           </div>
         )}
 
-        {/* 상담사 선택 및 후기 보기 */}
-        {mode === "apply" && (
-          <div>
+        {/* 상담사 선택 화면 */}
+        {mode === "apply" && selectedAdvisor === null && (
+          <>
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">상담사 선택</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {advisors.map((a) => (
                 <Card
                   key={a.id}
-                  className={`relative cursor-pointer ${
-                    selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""
-                  }`}
-                  onClick={() => toggleAdvisor(a)}
+                  className={`relative cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
+                  onClick={() => {
+                    setSelectedAdvisor(a);
+                    setMode("applyInput");
+                  }}
                 >
                   <div className="flex items-center gap-3">
                     <img src={a.image} className="w-12 h-12 rounded-full" alt={a.name} />
@@ -120,6 +114,7 @@ export default function UserPage() {
                       className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
                       onClick={(e) => {
                         e.stopPropagation();
+                        setSelectedAdvisor(a);
                         setMode("applyInput");
                       }}
                     >
@@ -129,12 +124,11 @@ export default function UserPage() {
                 </Card>
               ))}
             </div>
-
-            <ReviewList advisor={selectedAdvisor?.name || ""} />
-          </div>
+            <ReviewList advisor={""} />
+          </>
         )}
 
-        {/* 상담 내용 입력 폼 */}
+        {/* 상담 입력 폼 */}
         {mode === "applyInput" && selectedAdvisor && (
           <div className="mt-6">
             <Card className="p-4">
@@ -165,6 +159,9 @@ export default function UserPage() {
                 </Button>
               </div>
             </Card>
+
+            {/* 선택된 상담사의 후기 */}
+            <ReviewList advisor={selectedAdvisor.name} />
           </div>
         )}
 
