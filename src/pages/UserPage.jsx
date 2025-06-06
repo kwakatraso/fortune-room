@@ -37,8 +37,9 @@ export default function UserPage() {
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
   const [question, setQuestion] = useState("");
   const [consults, setConsults] = useState([]);
-  const [reviews, setReviews] = useState({});
-  const [reviewInputs, setReviewInputs] = useState({});
+  const [reviews, setReviews] = useState([]);
+  const [reviewTexts, setReviewTexts] = useState({});
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,22 +51,18 @@ export default function UserPage() {
 
   const fetchConsults = async () => {
     if (!user) return;
-    const cQuery = query(collection(db, "consults"), where("uid", "==", user.uid));
-    const snapshot = await getDocs(cQuery);
+    const q = query(collection(db, "consults"), where("uid", "==", user.uid));
+    const snapshot = await getDocs(q);
     const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     setConsults(list);
   };
 
   const fetchReviews = async () => {
     if (!user) return;
-    const rQuery = query(collection(db, "reviews"), where("uid", "==", user.uid));
-    const snapshot = await getDocs(rQuery);
-    const map = {};
-    snapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      map[data.consultId] = true;
-    });
-    setReviews(map);
+    const q = query(collection(db, "reviews"), where("uid", "==", user.uid));
+    const snapshot = await getDocs(q);
+    const list = snapshot.docs.map((doc) => ({ consultId: doc.data().consultId }));
+    setReviews(list.map((r) => r.consultId));
   };
 
   useEffect(() => {
@@ -77,58 +74,45 @@ export default function UserPage() {
 
   const submitConsult = async () => {
     if (!selectedAdvisor || !question) return alert("상담사와 질문을 모두 입력해주세요");
-    try {
-      await addDoc(collection(db, "consults"), {
-        uid: user.uid,
-        advisor: selectedAdvisor.name,
-        advisorId: selectedAdvisor.id,
-        question,
-        answer: "",
-        createdAt: new Date().toISOString(),
-      });
-      alert("상담 신청이 완료되었습니다.");
-      setMode("choose");
-      setSelectedAdvisor(null);
-      setQuestion("");
-    } catch (err) {
-      console.error(err);
-      alert("상담 신청 실패");
-    }
+    await addDoc(collection(db, "consults"), {
+      uid: user.uid,
+      advisor: selectedAdvisor.name,
+      advisorId: selectedAdvisor.id,
+      question,
+      answer: "",
+      createdAt: new Date().toISOString(),
+    });
+    alert("상담 신청이 완료되었습니다.");
+    setMode("choose");
+    setSelectedAdvisor(null);
+    setQuestion("");
   };
 
-  const submitReview = async (consult) => {
-    const content = reviewInputs[consult.id]?.trim();
-    const rating = 5;
-    if (!content) return alert("후기를 입력해주세요");
-
-    try {
-      await addDoc(collection(db, "reviews"), {
-        uid: user.uid,
-        advisor: consult.advisor,
-        consultId: consult.id,
-        content,
-        rating,
-        date: new Date().toISOString(),
-      });
-      alert("후기 등록 완료!");
-      setReviews((prev) => ({ ...prev, [consult.id]: true }));
-    } catch (err) {
-      console.error(err);
-      alert("후기 등록 실패");
-    }
+  const submitReview = async (consultId, advisor, text) => {
+    if (!text.trim()) return alert("후기 내용을 입력해주세요.");
+    await addDoc(collection(db, "reviews"), {
+      uid: user.uid,
+      advisor,
+      consultId,
+      content: text,
+      rating: 5,
+      date: new Date().toISOString(),
+      name: user.displayName || "익명",
+    });
+    alert("후기가 등록되었습니다.");
+    setReviews((prev) => [...prev, consultId]);
+    setReviewTexts((prev) => ({ ...prev, [consultId]: "" }));
   };
 
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
-        {(mode === "choose" || mode === "apply") && (
-          <div className="flex justify-center gap-4 mb-6">
-            <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>
-              📩 새로운 상담 신청
-            </Button>
-            <Button onClick={() => setMode("check")}>📜 기존 상담 확인</Button>
-          </div>
-        )}
+        <div className="flex justify-center gap-4 mb-6">
+          <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>
+            📩 새로운 상담 신청
+          </Button>
+          <Button onClick={() => setMode("check")}>📜 기존 상담 확인</Button>
+        </div>
 
         {mode === "apply" && selectedAdvisor === null && (
           <>
@@ -138,13 +122,10 @@ export default function UserPage() {
                 <Card
                   key={a.id}
                   className="relative cursor-pointer"
-                  onClick={() => {
-                    setSelectedAdvisor(a);
-                    setMode("applyInput");
-                  }}
+                  onClick={() => { setSelectedAdvisor(a); setMode("applyInput"); }}
                 >
                   <div className="flex items-center gap-3">
-                    <img src={a.image} className="w-12 h-12 rounded-full" alt={a.name} />
+                    <img src={a.image} className="w-12 h-12 rounded-full" />
                     <div>
                       <p className="font-bold">{a.name}</p>
                       <p className="text-sm text-gray-600">{a.desc}</p>
@@ -162,13 +143,12 @@ export default function UserPage() {
           <div className="mt-6">
             <Card className="p-4">
               <div className="flex items-center gap-4 mb-3">
-                <img src={selectedAdvisor.image} className="w-16 h-16 rounded-full" alt={selectedAdvisor.name} />
+                <img src={selectedAdvisor.image} className="w-16 h-16 rounded-full" />
                 <div>
                   <h3 className="text-lg font-bold text-purple-700">{selectedAdvisor.name}</h3>
                   <p className="text-sm text-gray-600">{selectedAdvisor.desc}</p>
                 </div>
               </div>
-
               <Textarea
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
@@ -176,14 +156,7 @@ export default function UserPage() {
               />
               <div className="flex gap-2 mt-3">
                 <Button onClick={submitConsult}>상담 신청하기</Button>
-                <Button
-                  className="bg-gray-300 text-black"
-                  onClick={() => {
-                    setMode("apply");
-                    setSelectedAdvisor(null);
-                    setQuestion("");
-                  }}
-                >
+                <Button className="bg-gray-300 text-black" onClick={() => { setMode("apply"); setSelectedAdvisor(null); setQuestion(""); }}>
                   상담사 다시 선택
                 </Button>
               </div>
@@ -207,17 +180,21 @@ export default function UserPage() {
                     작성일: {c.createdAt && new Date(c.createdAt).toLocaleDateString("ko-KR")}
                   </p>
 
-                  {c.answer && !reviews[c.id] && (
-                    <div className="mt-3 space-y-2">
+                  {c.answer && !reviews.includes(c.id) && (
+                    <div className="mt-2">
                       <Textarea
-                        placeholder="후기를 입력해주세요"
-                        value={reviewInputs[c.id] || ""}
-                        onChange={(e) =>
-                          setReviewInputs((prev) => ({ ...prev, [c.id]: e.target.value }))
-                        }
+                        placeholder="후기를 작성해주세요"
+                        value={reviewTexts[c.id] || ""}
+                        onChange={(e) => setReviewTexts({ ...reviewTexts, [c.id]: e.target.value })}
                       />
-                      <Button onClick={() => submitReview(c)}>후기 작성</Button>
+                      <Button className="mt-2" onClick={() => submitReview(c.id, c.advisor, reviewTexts[c.id])}>
+                        후기 작성
+                      </Button>
                     </div>
+                  )}
+
+                  {reviews.includes(c.id) && (
+                    <p className="text-sm text-green-600 mt-2">✅ 이미 후기를 작성하셨습니다.</p>
                   )}
                 </Card>
               ))
