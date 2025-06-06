@@ -89,25 +89,25 @@ export default function UserPage() {
     setQuestion("");
   };
 
-  const submitReview = async (consultId, advisor, text, rating, question) => {
+  const submitReview = async (consult, text, rating) => {
     if (!text.trim() || rating === 0) {
       alert("후기 내용과 별점을 모두 입력해주세요.");
       return;
     }
     await addDoc(collection(db, "reviews"), {
       uid: user.uid,
-      advisor,
-      consultId,
+      advisor: consult.advisor,
+      consultId: consult.id,
       content: text,
       rating,
+      question: consult.question || "",
       date: new Date().toISOString(),
       name: user.displayName || "익명",
-      question,
     });
     alert("후기가 등록되었습니다.");
-    setReviews((prev) => [...prev, consultId]);
-    setReviewTexts((prev) => ({ ...prev, [consultId]: "" }));
-    setReviewRatings((prev) => ({ ...prev, [consultId]: 0 }));
+    setReviews((prev) => [...prev, consult.id]);
+    setReviewTexts((prev) => ({ ...prev, [consult.id]: "" }));
+    setReviewRatings((prev) => ({ ...prev, [consult.id]: 0 }));
   };
 
   return (
@@ -224,9 +224,7 @@ export default function UserPage() {
                       </select>
                       <Button
                         className="mt-2"
-                        onClick={() =>
-                          submitReview(c.id, c.advisor, reviewTexts[c.id], reviewRatings[c.id], c.question)
-                        }
+                        onClick={() => submitReview(c, reviewTexts[c.id], reviewRatings[c.id])}
                       >
                         후기 작성
                       </Button>
