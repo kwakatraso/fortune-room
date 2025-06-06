@@ -18,15 +18,18 @@ export default function AdvisorPage() {
   const [answers, setAnswers] = useState({});
   const [advisorName, setAdvisorName] = useState("");
 
+  // 로그인된 상담사의 이름 불러오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const advisorSnapshot = await getDocs(
-          query(collection(db, "users"), where("uid", "==", user.uid))
+          query(collection(db, "users"), where("email", "==", user.email)) // 🔧 수정: uid → email
         );
         const advisorData = advisorSnapshot.docs[0]?.data();
         if (advisorData?.role === "advisor") {
-          setAdvisorName(advisorData.name);
+          setAdvisorName(advisorData.name); // ex. "도윤"
+        } else {
+          alert("상담사 권한이 없습니다.");
         }
       }
     });
@@ -34,12 +37,13 @@ export default function AdvisorPage() {
     return () => unsubscribe();
   }, []);
 
+  // 본인에게 온 상담 요청 목록 불러오기
   useEffect(() => {
     if (!advisorName) return;
 
     const fetchSessions = async () => {
       const snapshot = await getDocs(
-        query(collection(db, "sessions"), where("advisor", "==", advisorName))
+        query(collection(db, "consults"), where("advisor", "==", advisorName))
       );
       const list = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -63,7 +67,7 @@ export default function AdvisorPage() {
       return;
     }
 
-    await updateDoc(doc(db, "sessions", id), {
+    await updateDoc(doc(db, "consults", id), {
       answer,
       answeredAt: new Date().toISOString(),
     });
@@ -76,7 +80,7 @@ export default function AdvisorPage() {
   };
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-6 font-serif overflow-auto">
+    <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-6 font-serif overflow-auto">
       <h1 className="text-2xl font-bold text-purple-800 mb-6 text-center">
         상담 요청 목록
       </h1>
@@ -90,7 +94,8 @@ export default function AdvisorPage() {
             className="bg-white rounded-xl shadow p-4 mb-6 border border-purple-100"
           >
             <p className="text-sm text-gray-500 mb-1">
-              예약일: {s.reservationDate} / 이름: {s.name || "익명"} / 생년월일: {s.birth} / 생시: {s.birthTime}
+              👤 사용자 ID: {s.uid} | 신청일:{" "}
+              {new Date(s.createdAt).toLocaleString("ko-KR")}
             </p>
             <p className="text-gray-800 mb-2 whitespace-pre-line">
               💬 질문: {s.question}
@@ -115,7 +120,12 @@ export default function AdvisorPage() {
         ))
       )}
 
-      {advisorName && <ReviewList advisor={advisorName} />}
+      {/* 상담사에 대한 후기 확인 */}
+      {advisorName && (
+        <div className="mt-12">
+          <ReviewList advisor={advisorName} />
+        </div>
+      )}
     </div>
   );
 }
