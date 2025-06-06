@@ -12,6 +12,7 @@ import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import ReviewList from "../components/ReviewList";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
@@ -154,6 +155,9 @@ export default function AdminPage() {
           <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white py-2">상담사 등록</Button>
         </form>
       </Card>
+
+      {/* 후기 필터 및 정렬용 UI */}
+      <ReviewList advisor={""} />
 
       <div className="bg-white rounded-xl border border-purple-200 shadow p-4 space-y-2 text-sm">
         <h2 className="text-lg font-semibold text-purple-700">📊 후기 통계</h2>

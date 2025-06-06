@@ -9,9 +9,9 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { Button } from "../components/ui/Button";
+import ReviewList from "../components/ReviewList";
 
 export default function AdvisorPage() {
   const [sessions, setSessions] = useState([]);
@@ -21,7 +21,6 @@ export default function AdvisorPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // 상담사 정보 가져오기
         const advisorSnapshot = await getDocs(
           query(collection(db, "users"), where("uid", "==", user.uid))
         );
@@ -77,7 +76,7 @@ export default function AdvisorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-6 font-serif">
+    <div className="w-screen h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-6 font-serif overflow-auto">
       <h1 className="text-2xl font-bold text-purple-800 mb-6 text-center">
         상담 요청 목록
       </h1>
@@ -115,6 +114,8 @@ export default function AdvisorPage() {
           </div>
         ))
       )}
+
+      {advisorName && <ReviewList advisor={advisorName} />}
     </div>
   );
 }

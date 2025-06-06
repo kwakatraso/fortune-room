@@ -7,6 +7,7 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
+import ReviewList from "../components/ReviewList";
 
 const advisors = [
   {
@@ -27,7 +28,7 @@ const advisors = [
 
 export default function UserPage() {
   const [user, setUser] = useState(null);
-  const [mode, setMode] = useState("choose"); // choose, apply, check
+  const [mode, setMode] = useState("choose"); // choose, apply, applyInput, check
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
   const [question, setQuestion] = useState("");
   const [consults, setConsults] = useState([]);
@@ -74,7 +75,7 @@ export default function UserPage() {
   }, [mode]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif">
+    <div className="w-screen h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex justify-center gap-4 mb-6">
           <Button onClick={() => setMode("apply")}>📩 새로운 상담 신청</Button>
@@ -86,8 +87,11 @@ export default function UserPage() {
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">상담사 선택</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {advisors.map((a) => (
-                <Card key={a.id} className={`cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
-                  onClick={() => setSelectedAdvisor(a)}>
+                <Card
+                  key={a.id}
+                  className={`cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
+                  onClick={() => setSelectedAdvisor(a)}
+                >
                   <div className="flex items-center gap-3">
                     <img src={a.image} className="w-12 h-12 rounded-full" alt={a.name} />
                     <div>
@@ -96,21 +100,35 @@ export default function UserPage() {
                     </div>
                   </div>
                   <p className="text-xs mt-2 text-gray-500">{a.intro}</p>
+                  {selectedAdvisor?.id === a.id && (
+                    <button
+                      className="mt-3 text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMode("applyInput");
+                      }}
+                    >
+                      선택
+                    </button>
+                  )}
                 </Card>
               ))}
             </div>
+            {selectedAdvisor && <ReviewList advisor={selectedAdvisor.name} />}
+          </div>
+        )}
 
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-2 text-purple-700">상담 질문 입력</h3>
-              <Textarea
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="ex. 요즘 너무 불안한데 어떻게 해야 할까요?"
-              />
-              <Button className="mt-3" onClick={submitConsult}>
-                상담 신청하기
-              </Button>
-            </div>
+        {mode === "applyInput" && selectedAdvisor && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2 text-purple-700">상담 질문 입력</h3>
+            <Textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="ex. 요즘 너무 불안한데 어떻게 해야 할까요?"
+            />
+            <Button className="mt-3" onClick={submitConsult}>
+              상담 신청하기
+            </Button>
           </div>
         )}
 
@@ -124,7 +142,9 @@ export default function UserPage() {
                 <Card key={c.id} className="mb-4">
                   <p className="text-sm text-gray-600 mb-1">🧙 상담사: {c.advisor}</p>
                   <p className="text-sm whitespace-pre-line">💬 질문: {c.question}</p>
-                  <p className="text-sm whitespace-pre-line mt-2">✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}</p>
+                  <p className="text-sm whitespace-pre-line mt-2">
+                    ✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}
+                  </p>
                   <p className="text-xs text-right text-gray-400 mt-2">
                     작성일: {new Date(c.createdAt).toLocaleDateString("ko-KR")}
                   </p>
