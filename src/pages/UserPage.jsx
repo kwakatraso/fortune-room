@@ -39,6 +39,7 @@ export default function UserPage() {
   const [consults, setConsults] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [reviewTexts, setReviewTexts] = useState({});
+  const [reviewRatings, setReviewRatings] = useState({});
 
   const navigate = useNavigate();
 
@@ -88,25 +89,30 @@ export default function UserPage() {
     setQuestion("");
   };
 
-  const submitReview = async (consultId, advisor, text) => {
-    if (!text.trim()) return alert("후기 내용을 입력해주세요.");
+  const submitReview = async (consultId, advisor, text, rating) => {
+    if (!text.trim() || rating === 0) {
+      alert("후기 내용과 별점을 모두 입력해주세요.");
+      return;
+    }
     await addDoc(collection(db, "reviews"), {
       uid: user.uid,
       advisor,
       consultId,
       content: text,
-      rating: 5,
+      rating,
       date: new Date().toISOString(),
       name: user.displayName || "익명",
     });
     alert("후기가 등록되었습니다.");
     setReviews((prev) => [...prev, consultId]);
     setReviewTexts((prev) => ({ ...prev, [consultId]: "" }));
+    setReviewRatings((prev) => ({ ...prev, [consultId]: 0 }));
   };
 
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* 상단 고정 버튼 */}
         <div className="flex justify-center gap-4 mb-6">
           <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>
             📩 새로운 상담 신청
@@ -114,16 +120,13 @@ export default function UserPage() {
           <Button onClick={() => setMode("check")}>📜 기존 상담 확인</Button>
         </div>
 
+        {/* 상담사 선택 */}
         {mode === "apply" && selectedAdvisor === null && (
           <>
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">상담사 선택</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {advisors.map((a) => (
-                <Card
-                  key={a.id}
-                  className="relative cursor-pointer"
-                  onClick={() => { setSelectedAdvisor(a); setMode("applyInput"); }}
-                >
+                <Card key={a.id} className="relative cursor-pointer">
                   <div className="flex items-center gap-3">
                     <img src={a.image} className="w-12 h-12 rounded-full" />
                     <div>
@@ -132,6 +135,17 @@ export default function UserPage() {
                     </div>
                   </div>
                   <p className="text-xs mt-2 text-gray-500">{a.intro}</p>
+                  <div className="mt-3">
+                    <button
+                      className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
+                      onClick={() => {
+                        setSelectedAdvisor(a);
+                        setMode("applyInput");
+                      }}
+                    >
+                      선택
+                    </button>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -139,6 +153,7 @@ export default function UserPage() {
           </>
         )}
 
+        {/* 상담 입력 */}
         {mode === "applyInput" && selectedAdvisor && (
           <div className="mt-6">
             <Card className="p-4">
@@ -165,6 +180,7 @@ export default function UserPage() {
           </div>
         )}
 
+        {/* 기존 상담 확인 */}
         {mode === "check" && (
           <div>
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">📋 나의 상담 목록</h2>
@@ -175,26 +191,50 @@ export default function UserPage() {
                 <Card key={c.id} className="mb-4">
                   <p className="text-sm text-gray-600 mb-1">🧙 상담사: {c.advisor}</p>
                   <p className="text-sm whitespace-pre-line">💬 질문: {c.question}</p>
-                  <p className="text-sm whitespace-pre-line mt-2">✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}</p>
+                  <p className="text-sm whitespace-pre-line mt-2">
+                    ✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}
+                  </p>
                   <p className="text-xs text-right text-gray-400 mt-2">
                     작성일: {c.createdAt && new Date(c.createdAt).toLocaleDateString("ko-KR")}
                   </p>
 
                   {c.answer && !reviews.includes(c.id) && (
-                    <div className="mt-2">
+                    <div className="mt-3 space-y-2">
                       <Textarea
                         placeholder="후기를 작성해주세요"
                         value={reviewTexts[c.id] || ""}
-                        onChange={(e) => setReviewTexts({ ...reviewTexts, [c.id]: e.target.value })}
+                        onChange={(e) =>
+                          setReviewTexts({ ...reviewTexts, [c.id]: e.target.value })
+                        }
                       />
-                      <Button className="mt-2" onClick={() => submitReview(c.id, c.advisor, reviewTexts[c.id])}>
+                      <select
+                        value={reviewRatings[c.id] || 0}
+                        onChange={(e) =>
+                          setReviewRatings({ ...reviewRatings, [c.id]: Number(e.target.value) })
+                        }
+                        className="border rounded px-2 py-1"
+                      >
+                        <option value={0}>별점 선택</option>
+                        <option value={1}>⭐ 1점</option>
+                        <option value={2}>⭐ 2점</option>
+                        <option value={3}>⭐ 3점</option>
+                        <option value={4}>⭐ 4점</option>
+                        <option value={5}>⭐ 5점</option>
+                      </select>
+                      <Button
+                        onClick={() =>
+                          submitReview(c.id, c.advisor, reviewTexts[c.id], reviewRatings[c.id])
+                        }
+                      >
                         후기 작성
                       </Button>
                     </div>
                   )}
 
                   {reviews.includes(c.id) && (
-                    <p className="text-sm text-green-600 mt-2">✅ 이미 후기를 작성하셨습니다.</p>
+                    <p className="text-sm text-green-600 mt-2">
+                      ✅ 이미 후기를 작성하셨습니다.
+                    </p>
                   )}
                 </Card>
               ))
