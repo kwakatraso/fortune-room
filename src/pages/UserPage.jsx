@@ -42,9 +42,9 @@ export default function UserPage() {
 
   const toggleAdvisor = (advisor) => {
     if (selectedAdvisor?.id === advisor.id) {
-      setSelectedAdvisor(null);
+      setSelectedAdvisor(null); // 선택 해제
     } else {
-      setSelectedAdvisor(advisor);
+      setSelectedAdvisor(advisor); // 선택
     }
   };
 
@@ -82,7 +82,7 @@ export default function UserPage() {
   }, [mode]);
 
   return (
-    <div className="w-screen h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
+    <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex justify-center gap-4 mb-6">
           <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>📩 새로운 상담 신청</Button>
@@ -96,7 +96,7 @@ export default function UserPage() {
               {advisors.map((a) => (
                 <Card
                   key={a.id}
-                  className={`relative cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
+                  className={`relative cursor-pointer transition duration-200 ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
                   onClick={() => toggleAdvisor(a)}
                 >
                   <div className="flex items-center gap-3">
@@ -107,22 +107,24 @@ export default function UserPage() {
                     </div>
                   </div>
                   <p className="text-xs mt-2 text-gray-500">{a.intro}</p>
-                  <div className="mt-3">
-                    <button
-                      className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setMode("applyInput");
-                      }}
-                    >
-                      선택
-                    </button>
-                  </div>
+                  {selectedAdvisor?.id === a.id && (
+                    <div className="mt-3">
+                      <button
+                        className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMode("applyInput");
+                        }}
+                      >
+                        선택
+                      </button>
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>
 
-            <ReviewList advisor={selectedAdvisor?.name} key={selectedAdvisor?.id || "all"} />
+            <ReviewList advisor={selectedAdvisor?.name || null} key={selectedAdvisor?.id || "all"} />
           </div>
         )}
 
