@@ -44,10 +44,35 @@ export default function AdvisorPage() {
       const snapshot = await getDocs(
         query(collection(db, "consults"), where("advisor", "==", advisorName))
       );
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+
+      const list = await Promise.all(
+        snapshot.docs.map(async (docSnap) => {
+          const consult = { id: docSnap.id, ...docSnap.data() };
+
+          let birth = "-";
+          let birthTime = "-";
+
+          if (consult.uid) {
+            const userQuery = query(
+              collection(db, "users"),
+              where("uid", "==", consult.uid)
+            );
+            const userSnap = await getDocs(userQuery);
+            const userData = userSnap.docs[0]?.data();
+            if (userData) {
+              birth = userData.birth || "-";
+              birthTime = userData.birthTime || "-";
+            }
+          }
+
+          return {
+            ...consult,
+            birth,
+            birthTime,
+          };
+        })
+      );
+
       list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setSessions(list);
     };
@@ -117,7 +142,7 @@ export default function AdvisorPage() {
               👤 사용자 ID: {s.uid}
             </p>
             <p className="text-sm text-gray-600 mb-1">
-              🎂 생년월일: {s.birth || "-"} / 🕒 생시: {s.birthTime || "-"}
+              🎂 생년월일: {s.birth} / 🕒 생시: {s.birthTime}
             </p>
             <p className="text-sm text-gray-500 mb-2">
               📅 신청일:{" "}
