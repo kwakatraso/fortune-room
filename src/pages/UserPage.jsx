@@ -27,7 +27,7 @@ const advisors = [
 
 export default function UserPage() {
   const [user, setUser] = useState(null);
-  const [mode, setMode] = useState("choose"); // choose, apply, applyInput, check
+  const [mode, setMode] = useState("choose"); // choose | apply | applyInput | check
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
   const [question, setQuestion] = useState("");
   const [consults, setConsults] = useState([]);
@@ -42,17 +42,15 @@ export default function UserPage() {
 
   const toggleAdvisor = (advisor) => {
     if (selectedAdvisor?.id === advisor.id) {
-      setSelectedAdvisor(null); // 해제
+      setSelectedAdvisor(null); // toggle off
     } else {
-      setSelectedAdvisor(advisor); // 선택
+      setSelectedAdvisor(advisor); // toggle on
     }
   };
 
   const submitConsult = async () => {
-    if (!selectedAdvisor || !question.trim()) {
-      alert("상담사와 질문을 모두 입력해주세요");
-      return;
-    }
+    if (!selectedAdvisor || !question) return alert("상담사와 질문을 모두 입력해주세요");
+
     try {
       await addDoc(collection(db, "consults"), {
         uid: user.uid,
@@ -62,7 +60,8 @@ export default function UserPage() {
         answer: "",
         createdAt: new Date().toISOString(),
       });
-      alert("상담 신청이 완료되었습니다");
+
+      alert("상담 신청이 완료되었습니다.");
       setMode("choose");
       setSelectedAdvisor(null);
       setQuestion("");
@@ -88,7 +87,9 @@ export default function UserPage() {
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>📩 새로운 상담 신청</Button>
+          <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>
+            📩 새로운 상담 신청
+          </Button>
           <Button onClick={() => setMode("check")}>📜 기존 상담 확인</Button>
         </div>
 
@@ -99,7 +100,9 @@ export default function UserPage() {
               {advisors.map((a) => (
                 <Card
                   key={a.id}
-                  className={`relative cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
+                  className={`relative cursor-pointer ${
+                    selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""
+                  }`}
                   onClick={() => toggleAdvisor(a)}
                 >
                   <div className="flex items-center gap-3">
@@ -125,7 +128,7 @@ export default function UserPage() {
               ))}
             </div>
 
-            <ReviewList advisor={selectedAdvisor?.name || ""} key={selectedAdvisor?.id || "all"} />
+            <ReviewList advisor={selectedAdvisor?.name || ""} />
           </div>
         )}
 
@@ -134,9 +137,7 @@ export default function UserPage() {
             <Button onClick={() => setMode("apply")} className="mb-3">
               ← 뒤로
             </Button>
-            <h3 className="text-lg font-semibold mb-2 text-purple-700">
-              {selectedAdvisor.name} 상담사에게 질문하기
-            </h3>
+            <h3 className="text-lg font-semibold mb-2 text-purple-700">상담 질문 입력</h3>
             <Textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -158,9 +159,13 @@ export default function UserPage() {
                 <Card key={c.id} className="mb-4">
                   <p className="text-sm text-gray-600 mb-1">🧙 상담사: {c.advisor}</p>
                   <p className="text-sm whitespace-pre-line">💬 질문: {c.question}</p>
-                  <p className="text-sm whitespace-pre-line mt-2">✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}</p>
+                  <p className="text-sm whitespace-pre-line mt-2">
+                    ✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}
+                  </p>
                   <p className="text-xs text-right text-gray-400 mt-2">
-                    작성일: {new Date(c.createdAt).toLocaleDateString("ko-KR")}
+                    작성일:{" "}
+                    {c.createdAt &&
+                      new Date(c.createdAt).toLocaleDateString("ko-KR")}
                   </p>
                 </Card>
               ))
