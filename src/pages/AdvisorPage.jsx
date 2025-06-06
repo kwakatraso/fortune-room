@@ -5,6 +5,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   doc,
   updateDoc,
 } from "firebase/firestore";
@@ -19,6 +20,7 @@ export default function AdvisorPage() {
   const [advisorName, setAdvisorName] = useState("");
   const [tab, setTab] = useState("pending"); // pending | answered
 
+  // 로그인 사용자 확인 및 상담사 이름 추출
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -37,6 +39,7 @@ export default function AdvisorPage() {
     return () => unsubscribe();
   }, []);
 
+  // 상담 목록 불러오기
   useEffect(() => {
     if (!advisorName) return;
 
