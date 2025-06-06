@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 export default function ReviewList({ advisor }) {
   const [reviews, setReviews] = useState([]);
@@ -15,12 +9,13 @@ export default function ReviewList({ advisor }) {
   const [sort, setSort] = useState("latest"); // latest | high | low
 
   useEffect(() => {
-    if (!advisor) return;
-
     const fetchReviews = async () => {
-      const q = query(collection(db, "reviews"), where("advisor", "==", advisor));
-      const snapshot = await getDocs(q);
-      let list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const baseQuery = advisor
+        ? query(collection(db, "reviews"), where("advisor", "==", advisor))
+        : query(collection(db, "reviews"));
+
+      const snapshot = await getDocs(baseQuery);
+      const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setReviews(list);
     };
 
@@ -56,7 +51,7 @@ export default function ReviewList({ advisor }) {
   return (
     <div className="bg-white bg-opacity-60 p-4 rounded-xl shadow mt-6">
       <h3 className="text-lg font-bold text-purple-700 mb-4">
-        📝 {advisor} 상담사에 대한 후기
+        📝 {advisor ? `${advisor} 상담사에 대한 후기` : "상담 후기 목록"}
       </h3>
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
