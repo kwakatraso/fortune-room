@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Textarea } from "../components/ui/Textarea";
@@ -27,10 +33,12 @@ const advisors = [
 
 export default function UserPage() {
   const [user, setUser] = useState(null);
-  const [mode, setMode] = useState("choose"); // choose | apply | applyInput | check
+  const [mode, setMode] = useState("choose");
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
   const [question, setQuestion] = useState("");
   const [consults, setConsults] = useState([]);
+  const [reviews, setReviews] = useState({});
+  const [reviewInputs, setReviewInputs] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,9 +48,35 @@ export default function UserPage() {
     });
   }, [navigate]);
 
+  const fetchConsults = async () => {
+    if (!user) return;
+    const cQuery = query(collection(db, "consults"), where("uid", "==", user.uid));
+    const snapshot = await getDocs(cQuery);
+    const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    setConsults(list);
+  };
+
+  const fetchReviews = async () => {
+    if (!user) return;
+    const rQuery = query(collection(db, "reviews"), where("uid", "==", user.uid));
+    const snapshot = await getDocs(rQuery);
+    const map = {};
+    snapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      map[data.consultId] = true;
+    });
+    setReviews(map);
+  };
+
+  useEffect(() => {
+    if (mode === "check") {
+      fetchConsults();
+      fetchReviews();
+    }
+  }, [mode]);
+
   const submitConsult = async () => {
     if (!selectedAdvisor || !question) return alert("상담사와 질문을 모두 입력해주세요");
-
     try {
       await addDoc(collection(db, "consults"), {
         uid: user.uid,
@@ -52,7 +86,6 @@ export default function UserPage() {
         answer: "",
         createdAt: new Date().toISOString(),
       });
-
       alert("상담 신청이 완료되었습니다.");
       setMode("choose");
       setSelectedAdvisor(null);
@@ -63,17 +96,27 @@ export default function UserPage() {
     }
   };
 
-  const fetchConsults = async () => {
-    if (!user) return;
-    const q = query(collection(db, "consults"), where("uid", "==", user.uid));
-    const snapshot = await getDocs(q);
-    const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setConsults(list);
-  };
+  const submitReview = async (consult) => {
+    const content = reviewInputs[consult.id]?.trim();
+    const rating = 5;
+    if (!content) return alert("후기를 입력해주세요");
 
-  useEffect(() => {
-    if (mode === "check") fetchConsults();
-  }, [mode]);
+    try {
+      await addDoc(collection(db, "reviews"), {
+        uid: user.uid,
+        advisor: consult.advisor,
+        consultId: consult.id,
+        content,
+        rating,
+        date: new Date().toISOString(),
+      });
+      alert("후기 등록 완료!");
+      setReviews((prev) => ({ ...prev, [consult.id]: true }));
+    } catch (err) {
+      console.error(err);
+      alert("후기 등록 실패");
+    }
+  };
 
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
@@ -87,7 +130,6 @@ export default function UserPage() {
           </div>
         )}
 
-        {/* 상담사 선택 화면 */}
         {mode === "apply" && selectedAdvisor === null && (
           <>
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">상담사 선택</h2>
@@ -95,7 +137,7 @@ export default function UserPage() {
               {advisors.map((a) => (
                 <Card
                   key={a.id}
-                  className={`relative cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
+                  className="relative cursor-pointer"
                   onClick={() => {
                     setSelectedAdvisor(a);
                     setMode("applyInput");
@@ -109,18 +151,6 @@ export default function UserPage() {
                     </div>
                   </div>
                   <p className="text-xs mt-2 text-gray-500">{a.intro}</p>
-                  <div className="mt-3">
-                    <button
-                      className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedAdvisor(a);
-                        setMode("applyInput");
-                      }}
-                    >
-                      선택
-                    </button>
-                  </div>
                 </Card>
               ))}
             </div>
@@ -128,7 +158,6 @@ export default function UserPage() {
           </>
         )}
 
-        {/* 상담 입력 폼 */}
         {mode === "applyInput" && selectedAdvisor && (
           <div className="mt-6">
             <Card className="p-4">
@@ -159,13 +188,10 @@ export default function UserPage() {
                 </Button>
               </div>
             </Card>
-
-            {/* 선택된 상담사의 후기 */}
             <ReviewList advisor={selectedAdvisor.name} />
           </div>
         )}
 
-        {/* 기존 상담 확인 */}
         {mode === "check" && (
           <div>
             <h2 className="text-xl font-bold text-center mb-4 text-purple-800">📋 나의 상담 목록</h2>
@@ -176,14 +202,23 @@ export default function UserPage() {
                 <Card key={c.id} className="mb-4">
                   <p className="text-sm text-gray-600 mb-1">🧙 상담사: {c.advisor}</p>
                   <p className="text-sm whitespace-pre-line">💬 질문: {c.question}</p>
-                  <p className="text-sm whitespace-pre-line mt-2">
-                    ✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}
-                  </p>
+                  <p className="text-sm whitespace-pre-line mt-2">✅ 답변: {c.answer || "(아직 상담사가 답변하지 않았습니다)"}</p>
                   <p className="text-xs text-right text-gray-400 mt-2">
-                    작성일:{" "}
-                    {c.createdAt &&
-                      new Date(c.createdAt).toLocaleDateString("ko-KR")}
+                    작성일: {c.createdAt && new Date(c.createdAt).toLocaleDateString("ko-KR")}
                   </p>
+
+                  {c.answer && !reviews[c.id] && (
+                    <div className="mt-3 space-y-2">
+                      <Textarea
+                        placeholder="후기를 입력해주세요"
+                        value={reviewInputs[c.id] || ""}
+                        onChange={(e) =>
+                          setReviewInputs((prev) => ({ ...prev, [c.id]: e.target.value }))
+                        }
+                      />
+                      <Button onClick={() => submitReview(c)}>후기 작성</Button>
+                    </div>
+                  )}
                 </Card>
               ))
             )}
