@@ -42,9 +42,9 @@ export default function UserPage() {
 
   const toggleAdvisor = (advisor) => {
     if (selectedAdvisor?.id === advisor.id) {
-      setSelectedAdvisor(null); // toggle off
+      setSelectedAdvisor(null);
     } else {
-      setSelectedAdvisor(advisor); // toggle on
+      setSelectedAdvisor(advisor);
     }
   };
 
@@ -96,7 +96,7 @@ export default function UserPage() {
               {advisors.map((a) => (
                 <Card
                   key={a.id}
-                  className={`cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
+                  className={`relative cursor-pointer ${selectedAdvisor?.id === a.id ? "ring-2 ring-purple-500" : ""}`}
                   onClick={() => toggleAdvisor(a)}
                 >
                   <div className="flex items-center gap-3">
@@ -107,9 +107,9 @@ export default function UserPage() {
                     </div>
                   </div>
                   <p className="text-xs mt-2 text-gray-500">{a.intro}</p>
-                  {selectedAdvisor?.id === a.id && (
+                  <div className="mt-3">
                     <button
-                      className="mt-3 text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
+                      className="text-sm text-white bg-purple-500 hover:bg-purple-600 px-3 py-1 rounded"
                       onClick={(e) => {
                         e.stopPropagation();
                         setMode("applyInput");
@@ -117,12 +117,12 @@ export default function UserPage() {
                     >
                       선택
                     </button>
-                  )}
+                  </div>
                 </Card>
               ))}
             </div>
 
-            <ReviewList advisor={selectedAdvisor?.name} />
+            <ReviewList advisor={selectedAdvisor?.name} key={selectedAdvisor?.id || "all"} />
           </div>
         )}
 

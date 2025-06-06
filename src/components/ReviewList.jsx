@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function ReviewList({ advisor }) {
   const [reviews, setReviews] = useState([]);
@@ -10,31 +10,35 @@ export default function ReviewList({ advisor }) {
 
   useEffect(() => {
     const fetchReviews = async () => {
-      const baseQuery = advisor
-        ? query(collection(db, "reviews"), where("advisor", "==", advisor))
-        : query(collection(db, "reviews"));
-
-      const snapshot = await getDocs(baseQuery);
-      const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const snapshot = await getDocs(collection(db, "reviews"));
+      let list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setReviews(list);
     };
 
     fetchReviews();
-  }, [advisor]);
+  }, []);
 
   const getFilteredSortedReviews = () => {
     let filtered = [...reviews];
 
+    // 상담사 필터
+    if (advisor) {
+      filtered = filtered.filter((r) => r.advisor === advisor);
+    }
+
+    // 검색 필터
     if (search) {
       filtered = filtered.filter((r) =>
         r.content.toLowerCase().includes(search.toLowerCase())
       );
     }
 
+    // 별점 필터
     if (ratingFilter > 0) {
-      filtered = filtered.filter((r) => r.rating >= ratingFilter);
+      filtered = filtered.filter((r) => r.rating === ratingFilter);
     }
 
+    // 정렬
     if (sort === "latest") {
       filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     } else if (sort === "high") {
@@ -68,9 +72,11 @@ export default function ReviewList({ advisor }) {
           className="border p-2 rounded"
         >
           <option value={0}>⭐ 전체 별점</option>
-          <option value={3}>⭐ 3점 이상</option>
-          <option value={4}>⭐ 4점 이상</option>
-          <option value={5}>⭐ 5점만</option>
+          <option value={1}>⭐ 1점</option>
+          <option value={2}>⭐ 2점</option>
+          <option value={3}>⭐ 3점</option>
+          <option value={4}>⭐ 4점</option>
+          <option value={5}>⭐ 5점</option>
         </select>
         <select
           value={sort}
@@ -94,7 +100,12 @@ export default function ReviewList({ advisor }) {
             <p className="text-sm text-gray-800 mb-1">💬 {r.content}</p>
             <p className="text-xs text-gray-600">
               ⭐ {r.rating}점 | {r.name || "익명"} |{" "}
-              {new Date(r.date).toLocaleDateString("ko-KR")}
+              {r.date &&
+                new Date(r.date).toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                })}
             </p>
           </div>
         ))
