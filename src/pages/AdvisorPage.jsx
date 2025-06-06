@@ -17,17 +17,18 @@ export default function AdvisorPage() {
   const [sessions, setSessions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [advisorName, setAdvisorName] = useState("");
+  const [tab, setTab] = useState("pending"); // pending | answered
 
-  // 로그인된 상담사의 이름 불러오기
+  // 상담사 이름 가져오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const advisorSnapshot = await getDocs(
-          query(collection(db, "users"), where("email", "==", user.email)) // 🔧 수정: uid → email
+          query(collection(db, "users"), where("email", "==", user.email))
         );
         const advisorData = advisorSnapshot.docs[0]?.data();
         if (advisorData?.role === "advisor") {
-          setAdvisorName(advisorData.name); // ex. "도윤"
+          setAdvisorName(advisorData.name);
         } else {
           alert("상담사 권한이 없습니다.");
         }
@@ -37,7 +38,7 @@ export default function AdvisorPage() {
     return () => unsubscribe();
   }, []);
 
-  // 본인에게 온 상담 요청 목록 불러오기
+  // 상담 요청 불러오기
   useEffect(() => {
     if (!advisorName) return;
 
@@ -79,24 +80,58 @@ export default function AdvisorPage() {
     );
   };
 
+  const filteredSessions = sessions.filter((s) =>
+    tab === "pending" ? !s.answer : !!s.answer
+  );
+
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-6 font-serif overflow-auto">
       <h1 className="text-2xl font-bold text-purple-800 mb-6 text-center">
         상담 요청 목록
       </h1>
 
-      {sessions.length === 0 ? (
-        <p className="text-center text-gray-500">📭 아직 상담 요청이 없습니다.</p>
+      {/* 탭 */}
+      <div className="flex justify-center gap-4 mb-6">
+        <Button
+          onClick={() => setTab("pending")}
+          className={tab === "pending" ? "bg-purple-600 text-white" : ""}
+        >
+          📥 대기중 상담
+        </Button>
+        <Button
+          onClick={() => setTab("answered")}
+          className={tab === "answered" ? "bg-purple-600 text-white" : ""}
+        >
+          ✅ 답변 완료
+        </Button>
+      </div>
+
+      {filteredSessions.length === 0 ? (
+        <p className="text-center text-gray-500">해당 목록이 없습니다.</p>
       ) : (
-        sessions.map((s) => (
+        filteredSessions.map((s) => (
           <div
             key={s.id}
             className="bg-white rounded-xl shadow p-4 mb-6 border border-purple-100"
           >
-            <p className="text-sm text-gray-500 mb-1">
-              👤 사용자 ID: {s.uid} | 신청일:{" "}
-              {new Date(s.createdAt).toLocaleString("ko-KR")}
+            <p className="text-sm text-gray-600 mb-1">
+              👤 사용자 ID: {s.uid}
             </p>
+            <p className="text-sm text-gray-600 mb-1">
+              🎂 생년월일: {s.birth || "-"} / 🕒 생시: {s.birthTime || "-"}
+            </p>
+            <p className="text-sm text-gray-500 mb-2">
+              📅 신청일:{" "}
+              {s.createdAt &&
+                new Date(s.createdAt).toLocaleString("ko-KR", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+            </p>
+
             <p className="text-gray-800 mb-2 whitespace-pre-line">
               💬 질문: {s.question}
             </p>
@@ -120,7 +155,6 @@ export default function AdvisorPage() {
         ))
       )}
 
-      {/* 상담사에 대한 후기 확인 */}
       {advisorName && (
         <div className="mt-12">
           <ReviewList advisor={advisorName} />
