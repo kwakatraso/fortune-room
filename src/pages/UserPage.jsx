@@ -42,9 +42,9 @@ export default function UserPage() {
 
   const toggleAdvisor = (advisor) => {
     if (selectedAdvisor?.id === advisor.id) {
-      setSelectedAdvisor(null); // toggle off
+      setSelectedAdvisor(null);
     } else {
-      setSelectedAdvisor(advisor); // toggle on
+      setSelectedAdvisor(advisor);
     }
   };
 
@@ -86,12 +86,16 @@ export default function UserPage() {
   return (
     <div className="w-screen min-h-screen bg-gradient-to-b from-purple-100 via-white to-pink-100 p-4 font-serif overflow-auto">
       <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>
-            📩 새로운 상담 신청
-          </Button>
-          <Button onClick={() => setMode("check")}>📜 기존 상담 확인</Button>
-        </div>
+
+        {/* 상단 버튼은 applyInput 모드에서는 숨김 */}
+        {mode !== "applyInput" && (
+          <div className="flex justify-center gap-4 mb-6">
+            <Button onClick={() => { setMode("apply"); setSelectedAdvisor(null); }}>
+              📩 새로운 상담 신청
+            </Button>
+            <Button onClick={() => setMode("check")}>📜 기존 상담 확인</Button>
+          </div>
+        )}
 
         {mode === "apply" && (
           <div>
@@ -134,18 +138,34 @@ export default function UserPage() {
 
         {mode === "applyInput" && selectedAdvisor && (
           <div className="mt-6">
-            <Button onClick={() => setMode("apply")} className="mb-3">
-              ← 뒤로
-            </Button>
-            <h3 className="text-lg font-semibold mb-2 text-purple-700">상담 질문 입력</h3>
-            <Textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="ex. 요즘 너무 불안한데 어떻게 해야 할까요?"
-            />
-            <Button className="mt-3" onClick={submitConsult}>
-              상담 신청하기
-            </Button>
+            <Card className="p-4">
+              <div className="flex items-center gap-4 mb-3">
+                <img src={selectedAdvisor.image} className="w-16 h-16 rounded-full" alt={selectedAdvisor.name} />
+                <div>
+                  <h3 className="text-lg font-bold text-purple-700">{selectedAdvisor.name}</h3>
+                  <p className="text-sm text-gray-600">{selectedAdvisor.desc}</p>
+                </div>
+              </div>
+
+              <Textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="ex. 요즘 너무 불안한데 어떻게 해야 할까요?"
+              />
+              <div className="flex gap-2 mt-3">
+                <Button onClick={submitConsult}>상담 신청하기</Button>
+                <Button
+                  className="bg-gray-300 text-black"
+                  onClick={() => {
+                    setMode("apply");
+                    setSelectedAdvisor(null);
+                    setQuestion("");
+                  }}
+                >
+                  상담사 다시 선택
+                </Button>
+              </div>
+            </Card>
           </div>
         )}
 
