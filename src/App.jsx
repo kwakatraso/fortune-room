@@ -61,7 +61,7 @@ function Home() {
 
         <div className="mt-8">
           <Button
-            className="w-full bg-gray-300 hover:bg-gray-400 text-black"
+            className="w-full bg-gray-100 hover:bg-gray-200 text-black"
             onClick={() => navigate("/fortune")}
           >
             🍪 로그인 없이 오늘의 운세 보기

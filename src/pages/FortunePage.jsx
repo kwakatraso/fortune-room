@@ -29,8 +29,9 @@ export default function FortunePage() {
 
       const final = `🔮 ${randomFortune}\n\n📈 오늘의 운세 총점: ${score}점\n🎨 행운의 색: ${color}\n🎁 행운의 아이템: ${item}`;
       setFortune(final);
-      setFortuneText(`${randomFortune}\n총점 ${score}점\n행운의 색: ${color}\n행운의 아이템: ${item}`);
-      setLoading(final);
+      const link = "https://fortune-room.netlify.app";
+      const shareText = `${final}\n\n🔗 더 많은 운세 보기: ${link}`;
+      setFortuneText(shareText);
     }, 2000);
 
     return () => clearTimeout(timeout);
