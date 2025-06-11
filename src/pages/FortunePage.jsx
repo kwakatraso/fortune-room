@@ -51,7 +51,6 @@ export default function FortunePage() {
         await navigator.share({
           title: "⭐ 오늘의 운세",
           text: fortuneText,
-          url: window.location.href,
         });
       } catch (err) {
         alert("공유가 취소되었거나 실패했습니다.");
