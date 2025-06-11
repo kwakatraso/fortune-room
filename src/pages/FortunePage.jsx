@@ -32,6 +32,8 @@ export default function FortunePage() {
       const link = "https://fortune-room.netlify.app";
       const shareText = `${final}\n\n🔗 더 많은 운세 보기: ${link}`;
       setFortuneText(shareText);
+
+      setLoading(false);
     }, 2000);
 
     return () => clearTimeout(timeout);
