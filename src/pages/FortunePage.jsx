@@ -46,17 +46,20 @@ export default function FortunePage() {
   };
 
   const handleShare = async () => {
+    const shareText = `${fortune}\n\n🔗 더 많은 운세 보기: https://fortune-room.netlify.app`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: "⭐ 오늘의 운세",
-          text: fortuneText,
+          text: shareText,
         });
       } catch (err) {
         alert("공유가 취소되었거나 실패했습니다.");
       }
     } else {
-      handleCopy();
+      navigator.clipboard.writeText(shareText)
+      .then(() => alert("운세가 복사되었어요! 친구에게 공유해보세요."))
+      .catch(() => alert("복사에 실패했습니다."));
     }
   };
 
