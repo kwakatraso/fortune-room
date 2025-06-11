@@ -32,7 +32,6 @@ export default function FortunePage() {
       const link = "https://fortune-room.netlify.app";
       const shareText = `${final}\n\n🔗 더 많은 운세 보기: ${link}`;
       setFortuneText(shareText);
-
       setLoading(false);
     }, 2000);
 
@@ -41,25 +40,22 @@ export default function FortunePage() {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(fortuneText)
-      .then(() => alert("운세가 복사되었어요! 친구에게 공유해보세요."))
-      .catch(() => alert("복사에 실패했습니다."));
+      .then(() => alert("📋 운세가 복사되었어요! 친구에게 붙여넣어보세요."))
+      .catch(() => alert("❌ 복사에 실패했습니다. 아래 텍스트를 직접 복사해주세요."));
   };
 
   const handleShare = async () => {
-    const shareText = `${fortune}\n\n🔗 더 많은 운세 보기: https://fortune-room.netlify.app`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: "⭐ 오늘의 운세",
-          text: shareText,
+          text: fortuneText,
         });
       } catch (err) {
-        alert("공유가 취소되었거나 실패했습니다.");
+        alert("❌ 공유가 취소되었거나 실패했습니다.");
       }
     } else {
-      navigator.clipboard.writeText(shareText)
-      .then(() => alert("운세가 복사되었어요! 친구에게 공유해보세요."))
-      .catch(() => alert("복사에 실패했습니다."));
+      handleCopy();
     }
   };
 
@@ -67,14 +63,25 @@ export default function FortunePage() {
     <div className="w-screen h-screen bg-gradient-to-b from-yellow-100 via-white to-purple-100 flex items-center justify-center font-serif p-4">
       <Card className="text-center p-8 w-full max-w-md shadow-xl space-y-4">
         <h2 className="text-2xl font-bold text-purple-700">✨ 오늘의 운세 ✨</h2>
+
         {loading ? (
           <p className="text-gray-600 text-lg animate-pulse">🔮 운세를 확인하는 중...</p>
         ) : (
           <>
             <pre className="text-gray-800 whitespace-pre-wrap text-sm">{fortune}</pre>
+
             <div className="flex flex-col gap-2">
               <Button onClick={() => window.location.reload()}>🔄 다시 보기</Button>
               <Button onClick={handleShare}>📤 운세 공유하기</Button>
+            </div>
+
+            <div className="mt-4 text-left text-sm text-gray-500">
+              <p className="mb-1">👇 복사가 안 될 경우 아래 내용을 직접 드래그해서 복사해보세요</p>
+              <textarea
+                readOnly
+                value={fortuneText}
+                className="w-full h-32 p-2 border border-gray-300 rounded resize-none text-xs"
+              />
             </div>
           </>
         )}
