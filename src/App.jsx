@@ -12,6 +12,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import { Card } from "./components/ui/Card";
 import { Button } from "./components/ui/Button";
+import FortunePage from "./pages/FortunePage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/fortune" element={<FortunePage />} />
       </Routes>
     </Router>
   );
@@ -57,7 +59,16 @@ function Home() {
           </Card>
         </div>
 
-        <p className="text-xs text-gray-400 mt-12">© 2025 별의조언. 2023100646 곽지연.</p>
+        <div className="mt-8">
+          <Button
+            className="w-full bg-yellow-300 hover:bg-yellow-400 text-black"
+            onClick={() => navigate("/fortune")}
+          >
+            🍪 로그인 없이 오늘의 운세 보기
+          </Button>
+        </div>
+
+        <p className="text-xs text-gray-400 mt-12">© 2025 별의조언. 2023100646 곽지연</p>
       </div>
     </div>
   );
