@@ -3,7 +3,7 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 
 const fortunes = [
-  "오늘은 작은 행운이 따를 예감이에요.",
+  "오늘은 작은 행운이 따라올 예감이에요.",
   "마음먹은 일이 순조롭게 풀릴 것 같아요.",
   "예상치 못한 기회가 찾아올 수도 있어요.",
   "지금 하는 선택이 당신의 미래를 바꿔요.",
@@ -17,7 +17,8 @@ const items = ["볼펜", "책", "손거울", "이어폰", "지갑", "열쇠고�
 
 export default function FortunePage() {
   const [loading, setLoading] = useState(true);
-  const [fortune, setFortune] = useState({ text: "", score: 0, color: "", item: "" });
+  const [fortune, setFortune] = useState("");
+  const [fortuneText, setFortuneText] = useState("");
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -26,29 +27,50 @@ export default function FortunePage() {
       const color = colors[Math.floor(Math.random() * colors.length)];
       const item = items[Math.floor(Math.random() * items.length)];
 
-      setFortune({ text: randomFortune, score, color, item });
-      setLoading(false);
+      const final = `🔮 ${randomFortune}\n\n📈 오늘의 운세 총점: ${score}점\n🎨 행운의 색: ${color}\n🎁 행운의 아이템: ${item}`;
+      setFortune(final);
+      setFortuneText(`${randomFortune}\n총점 ${score}점\n행운의 색: ${color}\n행운의 아이템: ${item}`);
+      setLoading(final);
     }, 2000);
 
     return () => clearTimeout(timeout);
   }, []);
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(fortuneText)
+      .then(() => alert("운세가 복사되었어요! 친구에게 공유해보세요."))
+      .catch(() => alert("복사에 실패했습니다."));
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "⭐ 오늘의 운세",
+          text: fortuneText,
+          url: window.location.href,
+        });
+      } catch (err) {
+        alert("공유가 취소되었거나 실패했습니다.");
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
   return (
     <div className="w-screen h-screen bg-gradient-to-b from-yellow-100 via-white to-purple-100 flex items-center justify-center font-serif p-4">
       <Card className="text-center p-8 w-full max-w-md shadow-xl space-y-4">
-        <h2 className="text-2xl font-bold text-purple-700 mb-2">✨ 오늘의 운세 ✨</h2>
+        <h2 className="text-2xl font-bold text-purple-700">✨ 오늘의 운세 ✨</h2>
         {loading ? (
           <p className="text-gray-600 text-lg animate-pulse">🔮 운세를 확인하는 중...</p>
         ) : (
           <>
-            <p className="text-lg font-semibold text-purple-700">{fortune.text}</p>
-            <p>📈 총점: <span className="font-bold">{fortune.score}점</span></p>
-            <p>🎨 행운의 색: {fortune.color}</p>
-            <p>🎁 행운의 아이템: {fortune.item}</p>
-
-            <Button className="mt-4" onClick={() => window.location.reload()}>
-              🔄 다시 보기
-            </Button>
+            <pre className="text-gray-800 whitespace-pre-wrap text-sm">{fortune}</pre>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => window.location.reload()}>🔄 다시 보기</Button>
+              <Button onClick={handleShare}>📤 운세 공유하기</Button>
+            </div>
           </>
         )}
       </Card>
