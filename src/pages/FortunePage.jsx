@@ -22,7 +22,7 @@ export default function FortunePage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
-      const score = Math.floor(Math.random() * 71) + 30;
+      const score = Math.floor(Math.random() * 31) + 70;
       const color = colors[Math.floor(Math.random() * colors.length)];
       const item = items[Math.floor(Math.random() * items.length)];
 
